@@ -20,7 +20,7 @@ type Application struct {
 
 func NewApplication() *Application {
 	app := &Application{
-		SessionName: "inventory-sessid",
+		SessionName: "SESSION",
 		ServeMux:    http.NewServeMux(),
 	}
 
@@ -32,7 +32,6 @@ func NewApplication() *Application {
 }
 
 func (app *Application) SetUpRoutes() {
-	app.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 	app.HandleFunc("/login", app.LoginHandler)
 	app.HandleFunc("/logout", app.LogoutHandler)
 	app.HandleFunc("/register", app.RegisterHandler)
@@ -72,7 +71,11 @@ func (h *Application) RootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Application) IndexHandler(w http.ResponseWriter, r *http.Request) {
-	h.Templates.ExecuteTemplate(w, "Index", nil)
+	if err := h.renderWithLayout(w, map[string]interface{}{
+		"Title": "Index",
+	}, "Index", "Layout"); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (h *Application) DashboardHandler(w http.ResponseWriter, r *http.Request) {

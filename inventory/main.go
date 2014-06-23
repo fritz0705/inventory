@@ -40,8 +40,6 @@ func handlerFactory(configFile string) (http.Handler, error) {
 	handler := inventory.NewApplication()
 	handler.Database, err = sql.Open("postgres", config.Database)
 
-	err = handler.InitDb()
-
 	return handler, err
 }
 
