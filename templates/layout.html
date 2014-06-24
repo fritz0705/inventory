@@ -3,7 +3,7 @@
 <html>
 	<head>
 		<meta charset="utf-8" />
-		<title>{{with .Data}}{{.Title}} - {{end}}Inventory Management</title>
+		<title>{{.Template}} - Inventory Management</title>
 
 		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
 	</head>
@@ -13,6 +13,9 @@
 				<div class="navbar-header">
 					<a class="navbar-brand" href="/">Inventory Management</a>
 				</div>
+				{{with .User}}
+				<p class="navbar-text navbar-right">Signed in as {{.}}</p>
+				{{end}}
 			</div>
 		</nav>
 		<div class="container">

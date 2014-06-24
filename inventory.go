@@ -32,9 +32,9 @@ func NewApplication() *Application {
 }
 
 func (app *Application) SetUpRoutes() {
-	app.HandleFunc("/login", app.LoginHandler)
-	app.HandleFunc("/logout", app.LogoutHandler)
-	app.HandleFunc("/register", app.RegisterHandler)
+	app.HandleFunc("/login", app.requiresSessions(http.HandlerFunc(app.LoginHandler)))
+	app.HandleFunc("/logout", app.requiresSessions(http.HandlerFunc(app.LogoutHandler)))
+	app.HandleFunc("/register", app.requiresSessions(http.HandlerFunc(app.RegisterHandler)))
 	app.HandleFunc("/index", app.IndexHandler)
 	app.HandleFunc("/dashboard", app.requiresUser(http.HandlerFunc(app.DashboardHandler)))
 	app.HandleFunc("/", app.RootHandler)
@@ -44,12 +44,22 @@ func (h *Application) requiresUser(f http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if h.Sessions != nil {
 			session, err := h.Sessions.Get(r, h.SessionName)
-			if err == nil && !session.IsNew {
+			if err == nil && session.Values["userId"] != nil {
 				f.ServeHTTP(w, r)
 				return
 			}
 		}
 		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+	}
+}
+
+func (h *Application) requiresSessions(f http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if h.Sessions != nil {
+			f.ServeHTTP(w, r)
+			return
+		}
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	}
 }
 
@@ -71,15 +81,11 @@ func (h *Application) RootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Application) IndexHandler(w http.ResponseWriter, r *http.Request) {
-	if err := h.renderWithLayout(w, map[string]interface{}{
-		"Title": "Index",
-	}, "Index", "Layout"); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	h.renderTemplate(w, r, nil, "Index", "Layout")
 }
 
 func (h *Application) DashboardHandler(w http.ResponseWriter, r *http.Request) {
-	h.Templates.ExecuteTemplate(w, "Dashboard", nil)
+	h.renderTemplate(w, r, nil, "Dashboard", "Layout")
 }
 
 func (h *Application) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	_ "github.com/lib/pq"
+	_ "code.google.com/p/go-sqlite/go1/sqlite3"
 	"github.com/fritz0705/inventory"
 )
 
@@ -19,7 +19,7 @@ type Config struct {
 
 func handlerFactory(configFile string) (http.Handler, error) {
 	config := &Config{
-		Database: "user=fritz dbname=fritz sslmode=disable",
+		Database: ":memory:",
 	}
 
 	if configFile != "" {
@@ -38,7 +38,7 @@ func handlerFactory(configFile string) (http.Handler, error) {
 	var err error
 
 	handler := inventory.NewApplication()
-	handler.Database, err = sql.Open("postgres", config.Database)
+	handler.Database, err = sql.Open("sqlite3", config.Database)
 
 	return handler, err
 }
