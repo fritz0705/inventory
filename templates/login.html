@@ -1,13 +1,39 @@
 {{define "Login"}}
+<h1>Login</h1>
+
 <form role="form" action="/login" method="POST">
 	<div class="form-group">
 		<label for="loginFormEmail">Email address</label>
-		<input type="email" class="form-control" id="loginFormEmail" placeholder="Enter email" />
+		<input type="email" name="email" class="form-control" id="loginFormEmail" placeholder="Enter email" value="{{.Data.email}}" />
 	</div>
 	<div class="form-group">
 		<label for="loginFormPassword">Password</label>
-		<input type="password" class="form-control" id="loginFormPassword" placeholder="Password" />
+		<input type="password" name="password" class="form-control" id="loginFormPassword" placeholder="Password" />
 	</div>
 	<button type="submit" class="btn btn-default">Login</button>
+</form>
+{{end}}
+
+{{define "Register"}}
+<h1>Sign up</h1>
+
+<form role="form" action="/register" method="POST">
+	<div class="form-group">
+		<label for="registerFormName">Name</label>
+		<input type="text" name="name" class="form-control" id="registerFormName" placeholder="Display name" value="{{.Data.name}}" />
+	</div>
+	<div class="form-group">
+		<label for="registerFormEmail">Email address</label>
+		<input type="email" name="email" class="form-control" id="registerFormEmail" placeholder="Enter email" value="{{.Data.email}}" />
+	</div>
+	<div class="form-group">
+		<label for="registerFormPassword">Password</label>
+		<input type="password" name="password" class="form-control" id="registerFormPassword" placeholder="Password" />
+	</div>
+	<div class="form-group">
+		<label for="registerFormPasswordConfirmation">Password confirmation</label>
+		<input type="password" name="password_confirmation" class="form-control" id="registerFormPasswordConfirmation" placeholder="Password (confirmation)" />
+	</div>
+	<button type="submit" class="btn btn-default">Sign up</button>
 </form>
 {{end}}

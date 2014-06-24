@@ -27,6 +27,7 @@ func NewApplication() *Application {
 	app.SetUpRoutes()
 
 	app.Templates = template.Must(template.ParseGlob("templates/*.html"))
+	app.Sessions = sessions.NewCookieStore([]byte("secret"))
 
 	return app
 }

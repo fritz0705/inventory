@@ -32,8 +32,13 @@ func (a *Application) renderWithLayout(w io.Writer, params map[string]interface{
 func (a *Application) renderTemplate(w http.ResponseWriter, r *http.Request, data interface{}, templates... string) {
 	params := make(map[string]interface{})
 
+	if data == nil {
+		data = make(map[string]struct{})
+	}
+
 	if a.Sessions != nil {
 		session, err := a.Sessions.Get(r, a.SessionName)
+		println(session.Values["userId"])
 		if err == nil && session.Values["userId"] != nil {
 			params["User"] = session.Values["userId"].(string)
 		}
