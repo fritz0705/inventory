@@ -36,6 +36,7 @@ var Prefixes = []Prefix{
 	Kilo,
 	None,
 	Milli,
+	Micro,
 	Nano,
 	Pico,
 	Femto,
@@ -78,7 +79,7 @@ func (n Number) Canon() Number {
 	val := n.Value()
 	for _, prefix := range Prefixes {
 		sig := val / math.Pow10(int(prefix))
-		if sig >= 1 && sig <= 100 {
+		if sig >= 1.0 && sig <= 1000 {
 			return Number{
 				Significand: sig,
 				Exponent: prefix,

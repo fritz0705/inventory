@@ -37,6 +37,7 @@ type Part struct {
 	CategoryId  int64
 	PlaceId     sql.NullInt64
 	OwnerId     sql.NullInt64
+	CreatedAt   time.Time
 }
 
 type Category struct {
@@ -113,6 +114,25 @@ func LoadPartAmounts(db Queryer, query string, p ...interface{}) ([]*PartAmount,
 	}
 
 	return partAmounts, nil
+}
+
+func LoadPart(db Queryer, query string, p ...interface{}) (*Part, error) {
+	rows, err := db.Query(query, p...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		return nil, nil
+	}
+
+	part := new(Part)
+	err = part.Load(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	return part, err
 }
 
 func FindPart(db Queryer, id int64) (*Part, error) {
@@ -209,8 +229,8 @@ func (p *Part) Save(db Execer) error {
 	if p.Id == 0 {
 		// CREATE
 		res, err := db.Exec(`INSERT INTO 'part' ('name', 'description', 'value',
-		'category_id', 'owner_id', 'place_id') VALUES (?, ?, ?, ?, ?, ?)`,
-			p.Name, p.Description, p.Value, p.CategoryId, p.OwnerId, p.PlaceId)
+		'category_id', 'owner_id', 'place_id', 'created_at') VALUES (?, ?, ?, ?, ?, ?, ?)`,
+			p.Name, p.Description, p.Value, p.CategoryId, p.OwnerId, p.PlaceId, p.CreatedAt)
 		if err != nil {
 			return err
 		}
@@ -220,8 +240,9 @@ func (p *Part) Save(db Execer) error {
 
 	// UPDATE
 	_, err := db.Exec(`UPDATE 'part' SET 'name' = ?, 'description' = ?,
-	'value' = ?, 'category_id' = ?, 'owner_id' = ?, 'place_id' = ? WHERE "id" = ?`, p.Name,
-		p.Description, p.Value, p.CategoryId, p.OwnerId, p.PlaceId, p.Id)
+	'value' = ?, 'category_id' = ?, 'owner_id' = ?, 'place_id' = ?, 'created_at' = ?
+	WHERE "id" = ?`, p.Name, p.Description, p.Value, p.CategoryId, p.OwnerId,
+		p.PlaceId, p.CreatedAt, p.Id)
 
 	return err
 }
@@ -248,6 +269,8 @@ func (p *Part) Load(rows *sql.Rows) error {
 			dest[n] = &p.OwnerId
 		case "place_id":
 			dest[n] = &p.PlaceId
+		case "created_at":
+			dest[n] = &p.CreatedAt
 		}
 	}
 

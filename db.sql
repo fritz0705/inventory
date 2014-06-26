@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS 'part' (
 	'category_id' INTEGER NOT NULL,
 	'place_id' INTEGER,
 	'owner_id' INTEGER,
+	'created_at' DATETIME,
 	FOREIGN KEY('category_id') REFERENCES 'category'('id'),
 	FOREIGN KEY('place_id') REFERENCES 'place'('id'),
 	FOREIGN KEY('owner_id') REFERENCES 'user'('id') ON DELETE CASCADE

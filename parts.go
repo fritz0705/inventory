@@ -3,10 +3,8 @@ package inventory
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"path"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -32,26 +30,6 @@ func loadViewPart(part *Part, db Queryer) (*viewPart, error) {
 	return viewPart, err
 }
 
-func buildPartsQuery(form url.Values) (string, []interface{}) {
-	query := []string{}
-	args := make([]interface{}, 0)
-	if form["category"] != nil {
-		subQuery := []string{}
-		for _, category := range form["category"] {
-			subQuery = append(subQuery, `"category_id" = ?`)
-			args = append(args, category)
-		}
-
-		query = append(query, "("+strings.Join(subQuery, " OR ")+")")
-	}
-
-	if len(query) == 0 {
-		query = append(query, "1 = 1")
-	}
-
-	return strings.Join(query, " AND "), args
-}
-
 func buildPartAmountGraph(amounts []*PartAmount) (res [][2]int64) {
 	for _, amount := range amounts {
 		res = append(res, [2]int64{amount.Timestamp.Unix() * 1000, amount.Amount})
@@ -71,9 +49,7 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	filterQuery, filterArgs := buildPartsQuery(r.Form)
-
-	rows, err := app.Database.Query(`SELECT * FROM 'part' WHERE (`+filterQuery+`) ORDER BY "id" DESC`, filterArgs...)
+	rows, err := app.Database.Query(`SELECT * FROM 'part' ORDER BY "id" DESC`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -161,6 +137,12 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	latestAmount, err := part.LatestAmount(app.Database)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	places, err := LoadPlaces(app.Database, "SELECT * FROM 'place'")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -168,6 +150,12 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	categories, err := LoadCategories(app.Database, "SELECT * FROM 'category'")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	category, err := part.Category(app.Database)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -181,10 +169,12 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	app.renderTemplate(w, r, map[string]interface{}{
-		"Obj":         part,
-		"Categories":  categories,
-		"Places":      places,
-		"AmountGraph": buildPartAmountGraph(partAmounts),
+		"Obj":          part,
+		"Categories":   categories,
+		"Category":     category,
+		"Places":       places,
+		"AmountGraph":  buildPartAmountGraph(partAmounts),
+		"LatestAmount": latestAmount,
 	}, "EditPart", "Layout")
 }
 
@@ -288,6 +278,7 @@ func (app *Application) CreatePartHandler(w http.ResponseWriter, r *http.Request
 
 	// Create Part object
 	part := new(Part)
+	part.CreatedAt = time.Now()
 	err = part.LoadForm(r.PostForm)
 
 	err = part.Save(tx)

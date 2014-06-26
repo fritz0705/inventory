@@ -11,7 +11,7 @@
 			<thead>
 				<tr>
 					<th>Part</th>
-					<th>Value</th>
+					<th>Value/Category</th>
 					<th>Amount</th>
 					<th>Place</th>
 					<th></th>
@@ -77,6 +77,10 @@
 			<div class="form-group">
 				<label for="filterValue">Value</label>
 				<input type="text" name="value" class="form-control" id="filterValue" placeholder="Value e.g. 1, 5k, 1k-20k" />
+			</div>
+			<div class="form-group">
+				<label for="filterAmount">Amount</label>
+				<input type="text" name="amount" class="form-control" id="filterAmount" placeholder="Amount e.g. 1, 2, 5k" />
 			</div>
 			<button type="submit" class="btn btn-primary">Apply filter</button>
 		</form>
@@ -174,7 +178,12 @@
 			<div class="form-group">
 				<label for="partValue" class="col-sm-2 control-label">Value</label>
 				<div class="col-sm-10">
-					<input type="text" class="form-control" id="partValue" placeholder="Value with optional SI prefix" name="value" value="{{.Obj.Value|unnull}}" />
+					<div class="input-group">
+						<input type="text" class="form-control" id="partValue" placeholder="Value with optional SI prefix" name="value" value="{{.Obj.Value|unnull|siCanon}}" />
+						<span class="input-group-addon">
+							{{if .Category.UnitSymbol.Valid}}{{.Category.UnitSymbol.Value}}{{end}}
+						</span>
+					</div>
 				</div>
 			</div>
 			<div class="form-group">
@@ -206,6 +215,7 @@
 		</form>
 	</div>
 	<div class="col-md-4">
+		<p><strong>Current stock</strong> {{.LatestAmount.Amount}}</p>
 		<form class="form" role="form" method="POST" action="/parts/record/{{.Obj.Id}}">
 			<div class="row">
 				<div class="input-group">
