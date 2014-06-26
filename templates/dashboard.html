@@ -47,10 +47,7 @@
 					<td>{{.Value.Float64|siCanon}}{{.Category.UnitSymbol|unnull}}</td>
 					<td>{{with .Place}}{{.Name}}{{else}}(none){{end}}</td>
 					<td>
-						<div class="btn-group">
-							<a class="btn btn-success" href="/parts/gather/{{.Id}}">Gather stock</a>
-							<a class="btn btn-primary" href="/parts/edit/{{.Id}}">Edit</a>
-						</div>
+						<a class="btn btn-sm btn-success" href="/parts/edit/{{.Id}}">Record stock</a>
 					</td>
 				{{end}}
 			</tbody>

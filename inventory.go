@@ -50,7 +50,7 @@ func (app *Application) SetUpRoutes() {
 	app.HandleFunc("/parts/new", app.NewPartHandler)
 	app.HandleFunc("/parts/edit/", app.EditPartHandler)
 	app.HandleFunc("/parts/empty/", app.EmptyPartHandler)
-	app.HandleFunc("/parts/gather/", app.GatherPartHandler)
+	app.HandleFunc("/parts/record/", app.CreatePartAmountHandler)
 	app.HandleFunc("/parts/delete/", app.DeletePartHandler)
 
 	app.HandleFunc("/categories", app.ListCategoriesHandler)

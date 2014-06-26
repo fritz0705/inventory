@@ -5,7 +5,7 @@
 </ol>
 
 <div class="row">
-	<div class="col-md-8">
+	<div class="col-md-9">
 
 		<table class="table table-hover">
 			<thead>
@@ -22,10 +22,14 @@
 				<tr class="{{with .LatestAmount}}{{if eq .Amount 0}}danger{{end}}{{end}}">
 					<td>{{.Name}}</td>
 					<td>
+						{{if .Category.Unit.Valid}}
 						{{if .Value.Valid}}
 						{{.Value.Value|siCanon}}{{with .Category}}{{if .UnitSymbol.Valid}}{{.UnitSymbol.String}}{{end}}{{end}}
 						{{else}}
 						unknown
+						{{end}}
+						{{else}}
+						{{.Category.Name}}
 						{{end}}
 					</td>
 					<td>
@@ -44,8 +48,7 @@
 					</td>
 					<td>
 						<div class="btn-group pull-right">
-							<a class="btn btn-sm btn-default" href="/parts/edit/{{.Id}}">Edit</a>
-							<a class="btn btn-sm btn-primary" href="/parts/gather/{{.Id}}">Gather</a>
+							<a class="btn btn-sm btn-primary" href="/parts/edit/{{.Id}}">Edit</a>
 							<a class="btn btn-sm btn-warning" href="/parts/empty/{{.Id}}">Out of stock</a>
 							<a class="btn btn-sm btn-danger" href="/parts/delete/{{.Id}}">Delete</a>
 						</div>
@@ -57,7 +60,7 @@
 
 		<a class="btn btn-primary" href="/parts/new">New part</a>
 	</div>
-	<div class="col-md-4">
+	<div class="col-md-3">
 		<h2>Filters</h2>
 
 		<form role="form" class="form" method="GET" action="/parts">
@@ -152,9 +155,9 @@
 	<li class="active">Edit</li>
 </ol>
 
+{{with .Data}}
 <div class="row">
 	<div class="col-md-8">
-		{{with .Data}}
 		<form class="form-horizontal" role="form" method="POST" action="/parts/edit/{{.Obj.Id}}">
 			<div class="form-group">
 				<label for="partName" class="col-sm-2 control-label">Name</label>
@@ -178,7 +181,7 @@
 				<label for="partPlace" class="col-sm-2 control-label">Place</label>
 				<div class="col-sm-10">
 					<select class="form-control" name="place">
-						<option>(none)</option>
+						<option value="0">(none)</option>
 						{{range .Places}}
 						<option {{if eq .Id $.Data.Obj.PlaceId.Int64}}selected{{end}} value="{{.Id}}">{{.Name}}</option>
 						{{end}}
@@ -201,13 +204,23 @@
 				</div>
 			</div>
 		</form>
-		{{end}}
 	</div>
 	<div class="col-md-4">
+		<form class="form" role="form" method="POST" action="/parts/record/{{.Obj.Id}}">
+			<div class="row">
+				<div class="input-group">
+					<input type="text" class="form-control" name="amount" placeholder="New stock" />
+					<span class="input-group-btn">
+						<button class="btn btn-primary" type="submit">Record</button>
+					</span>
+				</div>
+			</div>
+		</form>
+		<hr />
 		<div id="amountChart" style="height: 360px"></div>
 		<script type="application/javascript">
 (function(){
- var data = [ {{.Data.AmountGraph}} ];
+ var data = [ {{.AmountGraph}} ];
  var options = {
 	xaxis: {
 		mode: "time",
@@ -220,22 +233,23 @@
 	</div>
 </div>
 {{end}}
+{{end}}
 
-{{define "GatherPart"}}
+{{define "RecordPartAmount"}}
 <ol class="breadcrumb">
 	<li><a href="/">Home</a></li>
 	<li><a href="/parts">Parts</a></li>
 	<li>{{.Data.Name}}</li>
-	<li class="active">Gather amount</li>
+	<li class="active">Record stock</li>
 </ol>
 
 {{with .Data}}
 <div class="row">
 	<div class="col-sm-6">
-		<form class="form" role="form" method="POST" action="/parts/gather/{{.Id}}">
+		<form class="form" role="form" method="POST" action="/parts/record/{{.Id}}">
 			<div class="form-group">
-				<label for="gatherAmount">Amount</label>
-				<input type="text" class="form-control" id="gatherAmount" placeholder="New amount" name="amount" />
+				<label for="recordAmount">Amount</label>
+				<input type="text" class="form-control" id="record amount" placeholder="New amount" name="amount" />
 			</div>
 			<button type="submit" class="btn btn-default">Save new amount</button>
 		</form>

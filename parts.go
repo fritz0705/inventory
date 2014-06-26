@@ -1,6 +1,7 @@
 package inventory
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -22,6 +23,7 @@ func loadViewPart(part *Part, db Queryer) (*viewPart, error) {
 	viewPart := new(viewPart)
 	viewPart.Part = part
 	viewPart.Category, err = part.Category(db)
+	viewPart.Place, err = part.Place(db)
 	if err != nil {
 		return viewPart, err
 	}
@@ -235,18 +237,19 @@ func (app *Application) CreatePartAmountHandler(w http.ResponseWriter, r *http.R
 
 	tx.Commit()
 
-	http.Redirect(w, r, "/parts", http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/parts/edit/%d", part.Id), http.StatusSeeOther)
 }
 
-func (app *Application) GatherPartHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		app.CreatePartAmountHandler(w, r)
-		return
-	}
-
+func (app *Application) UpdatePartHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(path.Base(r.URL.Path))
 	if err != nil {
 		app.NotFoundHandler(w, r)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -259,16 +262,19 @@ func (app *Application) GatherPartHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	viewPart, err := loadViewPart(part, app.Database)
+	err = part.LoadForm(r.PostForm)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	app.renderTemplate(w, r, viewPart, "GatherPart", "Layout")
-}
+	err = part.Save(app.Database)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-func (app *Application) UpdatePartHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, fmt.Sprintf("/parts/edit/%d", id), http.StatusFound)
 }
 
 func (app *Application) CreatePartHandler(w http.ResponseWriter, r *http.Request) {

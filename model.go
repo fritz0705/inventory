@@ -2,6 +2,7 @@ package inventory
 
 import (
 	"database/sql"
+	"io"
 	"net/url"
 	"strconv"
 	"time"
@@ -219,7 +220,7 @@ func (p *Part) Save(db Execer) error {
 
 	// UPDATE
 	_, err := db.Exec(`UPDATE 'part' SET 'name' = ?, 'description' = ?,
-	'value' = ?, 'category_id' = ?, 'owner_id' = ?, 'place_id' = ? WHERE 'id' = ?`, p.Name,
+	'value' = ?, 'category_id' = ?, 'owner_id' = ?, 'place_id' = ? WHERE "id" = ?`, p.Name,
 		p.Description, p.Value, p.CategoryId, p.OwnerId, p.PlaceId, p.Id)
 
 	return err
@@ -255,25 +256,22 @@ func (p *Part) Load(rows *sql.Rows) error {
 
 func (p *Part) LoadForm(form url.Values) error {
 	for key, value := range form {
-		if value[0] == "" {
-			continue
-		}
 		switch key {
 		case "name":
 			p.Name = value[0]
 		case "description":
 			p.Description = sql.NullString{
 				String: value[0],
-				Valid:  true,
+				Valid:  value[0] != "",
 			}
 		case "value":
 			num, err := si.Parse(value[0])
-			if err != nil {
+			if err != nil && err != io.EOF {
 				return err
 			}
 			p.Value = sql.NullFloat64{
 				Float64: num.Value(),
-				Valid:   true,
+				Valid:   value[0] != "",
 			}
 		case "category":
 			val, err := strconv.Atoi(value[0])
@@ -286,11 +284,9 @@ func (p *Part) LoadForm(form url.Values) error {
 			if err != nil {
 				return err
 			}
-			if val != 0 {
-				p.PlaceId = sql.NullInt64{
-					Int64: int64(val),
-					Valid: true,
-				}
+			p.PlaceId = sql.NullInt64{
+				Int64: int64(val),
+				Valid: val != 0,
 			}
 		case "owner":
 			val, err := strconv.Atoi(value[0])
@@ -336,6 +332,22 @@ func (p *Part) Category(db Queryer) (*Category, error) {
 	err = category.Load(rows)
 
 	return category, err
+}
+
+func (p *Part) Place(db Queryer) (*Place, error) {
+	rows, err := db.Query(`SELECT * FROM 'place' WHERE "id" = ?`, p.PlaceId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		return nil, nil
+	}
+
+	place := new(Place)
+	err = place.Load(rows)
+
+	return place, err
 }
 
 func (c *Category) Save(db Execer) error {
