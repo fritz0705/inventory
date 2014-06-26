@@ -34,7 +34,7 @@ type Part struct {
 	Description sql.NullString
 	Value       sql.NullFloat64
 	CategoryId  int64
-	PlaceId  sql.NullInt64
+	PlaceId     sql.NullInt64
 	OwnerId     sql.NullInt64
 }
 

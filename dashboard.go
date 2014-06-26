@@ -60,7 +60,7 @@ func (app *Application) DashboardHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	app.renderTemplate(w, r, map[string]interface{}{
-		"Parts": parts,
+		"Parts":      parts,
 		"OutOfStock": outOfStock,
 	}, "Dashboard", "Layout")
 }

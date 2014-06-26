@@ -11,9 +11,9 @@ import (
 
 type viewPart struct {
 	*Part
-	Category *Category
+	Category     *Category
 	LatestAmount *PartAmount
-	Place *Place
+	Place        *Place
 }
 
 func loadViewPart(part *Part, db Queryer) (*viewPart, error) {
@@ -40,7 +40,7 @@ func buildPartsQuery(form url.Values) (string, []interface{}) {
 			args = append(args, category)
 		}
 
-		query = append(query, "(" + strings.Join(subQuery, " OR ") + ")")
+		query = append(query, "("+strings.Join(subQuery, " OR ")+")")
 	}
 
 	if len(query) == 0 {
@@ -52,7 +52,7 @@ func buildPartsQuery(form url.Values) (string, []interface{}) {
 
 func buildPartAmountGraph(amounts []*PartAmount) (res [][2]int64) {
 	for _, amount := range amounts {
-		res = append(res, [2]int64{ amount.Timestamp.Unix()*1000, amount.Amount })
+		res = append(res, [2]int64{amount.Timestamp.Unix() * 1000, amount.Amount})
 	}
 	return res
 }
@@ -113,9 +113,9 @@ func (app *Application) NewPartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.renderTemplate(w, r, map[string]interface{}{
-		"Obj": &Part{},
+		"Obj":        &Part{},
 		"Categories": categories,
-		"Places": places,
+		"Places":     places,
 	}, "NewPart", "Layout")
 }
 
@@ -179,9 +179,9 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	app.renderTemplate(w, r, map[string]interface{}{
-		"Obj": part,
-		"Categories": categories,
-		"Places": places,
+		"Obj":         part,
+		"Categories":  categories,
+		"Places":      places,
 		"AmountGraph": buildPartAmountGraph(partAmounts),
 	}, "EditPart", "Layout")
 }
@@ -222,8 +222,8 @@ func (app *Application) CreatePartAmountHandler(w http.ResponseWriter, r *http.R
 	}
 
 	partAmount := &PartAmount{
-		PartId: part.Id,
-		Amount: int64(amount),
+		PartId:    part.Id,
+		Amount:    int64(amount),
 		Timestamp: time.Now(),
 	}
 
@@ -334,8 +334,8 @@ func (app *Application) EmptyPartHandler(w http.ResponseWriter, r *http.Request)
 	rows.Close()
 
 	partAmount := &PartAmount{
-		PartId: int64(id),
-		Amount: 0,
+		PartId:    int64(id),
+		Amount:    0,
 		Timestamp: time.Now(),
 	}
 
