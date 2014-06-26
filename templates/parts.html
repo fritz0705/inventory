@@ -1,0 +1,247 @@
+{{define "ListParts"}}
+<ol class="breadcrumb">
+	<li><a href="/">Home</a></li>
+	<li class="active">Parts</li>
+</ol>
+
+<div class="row">
+	<div class="col-md-8">
+
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th>Part</th>
+					<th>Value</th>
+					<th>Amount</th>
+					<th>Place</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				{{range .Data.Parts}}
+				<tr class="{{with .LatestAmount}}{{if eq .Amount 0}}danger{{end}}{{end}}">
+					<td>{{.Name}}</td>
+					<td>
+						{{if .Value.Valid}}
+						{{.Value.Value|siCanon}}{{with .Category}}{{if .UnitSymbol.Valid}}{{.UnitSymbol.String}}{{end}}{{end}}
+						{{else}}
+						unknown
+						{{end}}
+					</td>
+					<td>
+						{{with .LatestAmount}}
+						{{.Amount}}
+						{{else}}
+						unknown
+						{{end}}
+					</td>
+					<td>
+						{{with .Place}}
+						{{.Name}}
+						{{else}}
+						unknown
+						{{end}}
+					</td>
+					<td>
+						<div class="btn-group pull-right">
+							<a class="btn btn-sm btn-default" href="/parts/edit/{{.Id}}">Edit</a>
+							<a class="btn btn-sm btn-primary" href="/parts/gather/{{.Id}}">Gather</a>
+							<a class="btn btn-sm btn-warning" href="/parts/empty/{{.Id}}">Out of stock</a>
+							<a class="btn btn-sm btn-danger" href="/parts/delete/{{.Id}}">Delete</a>
+						</div>
+					</td>
+				</tr>
+				{{end}}
+			</tbody>
+		</table>
+
+		<a class="btn btn-primary" href="/parts/new">New part</a>
+	</div>
+	<div class="col-md-4">
+		<h2>Filters</h2>
+
+		<form role="form" class="form" method="GET" action="/parts">
+			<div class="form-group">
+				<label for="filterCategory">Category</label>
+				<select class="form-control" id="filterCategory" multiple name="category">
+					{{with .Data.Categories}}
+					{{range .}}
+					<option value="{{.Id}}">{{.Name}}{{if .Unit.Valid}} ({{.Unit.String}}){{end}}</option>
+					{{end}}
+					{{end}}
+				</select>
+			</div>
+			<div class="form-group">
+				<label for="filterValue">Value</label>
+				<input type="text" name="value" class="form-control" id="filterValue" placeholder="Value e.g. 1, 5k, 1k-20k" />
+			</div>
+			<button type="submit" class="btn btn-primary">Apply filter</button>
+		</form>
+	</div>
+</div>
+{{end}}
+
+{{define "NewPart"}}
+<ol class="breadcrumb">
+	<li><a href="/">Home</a></li>
+	<li><a href="/parts">Parts</a></li>
+	<li class="active">New part</a></li>
+</ol>
+
+{{with .Data}}
+<form class="form-horizontal" role="form" method="POST" action="/parts">
+	<div class="form-group">
+		<label for="partName" class="col-sm-2 control-label">Name</label>
+		<div class="col-sm-10">
+			<input type="text" class="form-control" id="partName" placeholder="Name, e.g. R10-1/4" name="name" value="{{.Obj.Name}}" />
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="partDescription" class="col-sm-2 control-label">Description</label>
+		<div class="col-sm-10">
+			<textarea id="partDescription" class="form-control" rows="3" name="description" placeholder="Description">{{.Obj.Description|unnull}}</textarea>
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="partValue" class="col-sm-2 control-label">Value</label>
+		<div class="col-sm-10">
+			<input type="text" class="form-control" id="partValue" placeholder="Value with optional SI prefix" name="value" value="{{.Obj.Value|unnull}}" />
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="partAmount" class="col-sm-2 control-label">Amount</label>
+		<div class="col-sm-10">
+			<input type="text" class="form-control" id="partAmount" placeholder="Amount" name="amount" value="" />
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="partPlace" class="col-sm-2 control-label">Place</label>
+		<div class="col-sm-10">
+			<select class="form-control" name="place">
+				<option value="0">(none)</option>
+				{{range .Places}}
+				<option value="{{.Id}}">{{.Name}}</option>
+				{{end}}
+			</select>
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="newPartFormCategory" class="col-sm-2 control-label">Category</label>
+		<div class="col-sm-10">
+			<select class="form-control" name="category">
+				{{range .Categories}}
+				<option value="{{.Id}}">{{.Name}}{{with .Unit.Value}} ({{.}}){{end}}</option>
+				{{end}}
+			</select>
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-offset-2 col-sm-10">
+			<button type="submit" class="btn btn-default">Create new part</button>
+		</div>
+	</div>
+</form>
+{{end}}
+{{end}}
+
+{{define "EditPart"}}
+<ol class="breadcrumb">
+	<li><a href="/">Home</a></li>
+	<li><a href="/parts">Parts</a></li>
+	<li>{{.Data.Obj.Name}}</li>
+	<li class="active">Edit</li>
+</ol>
+
+<div class="row">
+	<div class="col-md-8">
+		{{with .Data}}
+		<form class="form-horizontal" role="form" method="POST" action="/parts/edit/{{.Obj.Id}}">
+			<div class="form-group">
+				<label for="partName" class="col-sm-2 control-label">Name</label>
+				<div class="col-sm-10">
+					<input type="text" class="form-control" id="partName" placeholder="Name, e.g. R10-1/4" name="name" value="{{.Obj.Name}}" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="partDescription" class="col-sm-2 control-label">Description</label>
+				<div class="col-sm-10">
+					<textarea id="partDescription" class="form-control" rows="3" name="description" placeholder="Description">{{.Obj.Description|unnull}}</textarea>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="partValue" class="col-sm-2 control-label">Value</label>
+				<div class="col-sm-10">
+					<input type="text" class="form-control" id="partValue" placeholder="Value with optional SI prefix" name="value" value="{{.Obj.Value|unnull}}" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="partPlace" class="col-sm-2 control-label">Place</label>
+				<div class="col-sm-10">
+					<select class="form-control" name="place">
+						<option>(none)</option>
+						{{range .Places}}
+						<option {{if eq .Id $.Data.Obj.PlaceId.Int64}}selected{{end}} value="{{.Id}}">{{.Name}}</option>
+						{{end}}
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="newPartFormCategory" class="col-sm-2 control-label">Category</label>
+				<div class="col-sm-10">
+					<select class="form-control" name="category">
+						{{range .Categories}}
+						<option {{if eq .Id $.Data.Obj.CategoryId}}selected{{end}} value="{{.Id}}">{{.Name}}{{if .Unit.Valid}} ({{.Unit|unnull}}){{end}}</option>
+						{{end}}
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-offset-2 col-sm-10">
+					<button type="submit" class="btn btn-default">Update part</button>
+				</div>
+			</div>
+		</form>
+		{{end}}
+	</div>
+	<div class="col-md-4">
+		<div id="amountChart" style="height: 360px"></div>
+		<script type="application/javascript">
+(function(){
+ var data = [ {{.Data.AmountGraph}} ];
+ var options = {
+	xaxis: {
+		mode: "time",
+		timeformat: "%d.%m.%Y"
+	}
+ };
+ $.plot($("#amountChart"), data, options);
+})();
+		</script>
+	</div>
+</div>
+{{end}}
+
+{{define "GatherPart"}}
+<ol class="breadcrumb">
+	<li><a href="/">Home</a></li>
+	<li><a href="/parts">Parts</a></li>
+	<li>{{.Data.Name}}</li>
+	<li class="active">Gather amount</li>
+</ol>
+
+{{with .Data}}
+<div class="row">
+	<div class="col-sm-6">
+		<form class="form" role="form" method="POST" action="/parts/gather/{{.Id}}">
+			<div class="form-group">
+				<label for="gatherAmount">Amount</label>
+				<input type="text" class="form-control" id="gatherAmount" placeholder="New amount" name="amount" />
+			</div>
+			<button type="submit" class="btn btn-default">Save new amount</button>
+		</form>
+	</div>
+	<div class="col-sm-6">
+	</div>
+</div>
+{{end}}
+{{end}}

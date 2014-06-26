@@ -1,0 +1,65 @@
+{{define "ListCategories"}}
+<ol class="breadcrumb">
+	<li><a href="/">Home</a></li>
+	<li class="active">Categories</li>
+</ol>
+
+<table class="table table-striped table-condensed">
+	<thead>
+		<tr>
+			<th>Category</th>
+			<th>Unit</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		{{range .Data}}
+		<tr>
+			<td>{{.Name}}</td>
+			<td>{{.Unit.Value}}{{if .UnitSymbol.Valid}} ({{.UnitSymbol.Value}}){{end}}</td>
+			<td>
+				<div class="btn-group pull-right">
+					<a class="btn btn-sm btn-default" href="/categories/edit/{{.Id}}">Edit</a>
+					<a class="btn btn-sm btn-danger" href="/categories/delete/{{.Id}}">Delete</a>
+				</div>
+			</td>
+		{{end}}
+	</tbody>
+</table>
+
+<a href="/categories/new" class="btn btn-primary">New category</a>
+{{end}}
+
+{{define "NewCategory"}}
+<ol class="breadcrumb">
+	<li><a href="/">Home</a></li>
+	<li><a href="/categories">Categories</a></li>
+	<li class="active">New</li>
+</ol>
+
+<form role="form" class="form-horizontal" method="POST" action="/categories">
+	<div class="form-group">
+		<label for="newCategoryFormName" class="col-sm-2 control-label">Name</label>
+		<div class="col-sm-10">
+			<input type="text" class="form-control" id="newCategoryFormName" name="name" placeholder="Category name" />
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="newCategoryFormUnit" class="col-sm-2 control-label">Unit</label>
+		<div class="col-sm-10">
+			<input type="text" class="form-control" id="newCategoryFormUnit" name="unit" placeholder="Category unit, e.g. Ohm" />
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="newCategoryFormUnitSymbol" class="col-sm-2 control-label">Unit symbol</label>
+		<div class="col-sm-10">
+			<input type="text" class="form-control" id="newCategoryFormUnitSymbol" name="unit_symbol" placeholder="Unit symbol, e.g. Ω" />
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-offset-2 col-sm-10">
+			<button type="submit" class="btn btn-primary">Create category</button>
+		</div>
+	</div>
+</form>
+{{end}}

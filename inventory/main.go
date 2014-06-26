@@ -19,7 +19,7 @@ type Config struct {
 
 func handlerFactory(configFile string) (http.Handler, error) {
 	config := &Config{
-		Database: ":memory:",
+		Database: "inventory.db",
 	}
 
 	if configFile != "" {
@@ -39,6 +39,7 @@ func handlerFactory(configFile string) (http.Handler, error) {
 
 	handler := inventory.NewApplication()
 	handler.Database, err = sql.Open("sqlite3", config.Database)
+	handler.Database.Exec("PRAGMA foreign_keys = on")
 
 	return handler, err
 }

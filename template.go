@@ -2,18 +2,21 @@ package inventory
 
 import (
 	"bytes"
+	"database/sql"
 	"html/template"
 	"io"
 	"net/http"
+
+	"github.com/fritz0705/inventory/si"
 )
 
-func (a *Application) renderWithLayout(w io.Writer, params map[string]interface{}, data interface{}, templates... string) error {
+func (a *Application) renderWithLayout(w io.Writer, params map[string]interface{}, data interface{}, templates ...string) error {
 	var content []byte
 	for _, tpl := range templates {
 		buf := new(bytes.Buffer)
 		tplData := map[string]interface{}{
-			"Data": data,
-			"Content": template.HTML(content),
+			"Data":     data,
+			"Content":  template.HTML(content),
 			"Template": templates[0],
 		}
 		for key, val := range params {
@@ -29,7 +32,7 @@ func (a *Application) renderWithLayout(w io.Writer, params map[string]interface{
 	return err
 }
 
-func (a *Application) renderTemplate(w http.ResponseWriter, r *http.Request, data interface{}, templates... string) {
+func (a *Application) renderTemplate(w http.ResponseWriter, r *http.Request, data interface{}, templates ...string) {
 	params := make(map[string]interface{})
 
 	if data == nil {
@@ -38,9 +41,8 @@ func (a *Application) renderTemplate(w http.ResponseWriter, r *http.Request, dat
 
 	if a.Sessions != nil {
 		session, err := a.Sessions.Get(r, a.SessionName)
-		println(session.Values["userId"])
 		if err == nil && session.Values["userId"] != nil {
-			params["User"] = session.Values["userId"].(string)
+			params["User"] = session.Values["userId"]
 		}
 	}
 
@@ -48,4 +50,35 @@ func (a *Application) renderTemplate(w http.ResponseWriter, r *http.Request, dat
 	if err != nil {
 		panic(err)
 	}
+}
+
+var templateFuncs = template.FuncMap{
+	"siCanon": func(num float64) string {
+		return si.New(num).Canon().String()
+	},
+
+	"unnull": func(v interface{}) interface{} {
+		switch i := v.(type) {
+		case sql.NullInt64:
+			if i.Valid {
+				return i.Int64
+			}
+		case sql.NullFloat64:
+			if i.Valid {
+				return i.Float64
+			}
+		case sql.NullBool:
+			if i.Valid {
+				return i.Bool
+			}
+		case sql.NullString:
+			if i.Valid {
+				return i.String
+			}
+		default:
+			return v
+		}
+
+		return nil
+	},
 }

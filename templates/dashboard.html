@@ -1,0 +1,60 @@
+{{define "Dashboard"}}
+<ol class="breadcrumb">
+	<li>Home</li>
+	<li class="active">Dashboard</a>
+</ol>
+
+<div class="row">
+	<div class="col-md-6">
+		<h2>Newest parts</h2>
+
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th>Part</th>
+					<th>Value</th>
+					<th>Amount</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				{{range .Data.Parts}}
+				<tr>
+					<td>{{.Name}}</td>
+					<td>{{.Value.Float64}}</td>
+					<td><a href="/parts/edit/{{.Id}}" class="btn btn-primary btn-sm">Edit</a></td>
+				</tr>
+				{{end}}
+			</tbody>
+		</table>
+	</div>
+	<div class="col-md-6">
+		<h2>Latest Out-of-stock</h2>
+
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th>Part</th>
+					<th>Value</th>
+					<th>Place</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				{{range .Data.OutOfStock}}
+				<tr>
+					<td>{{.Name}}</td>
+					<td>{{.Value.Float64|siCanon}}{{.Category.UnitSymbol|unnull}}</td>
+					<td>{{with .Place}}{{.Name}}{{else}}(none){{end}}</td>
+					<td>
+						<div class="btn-group">
+							<a class="btn btn-success" href="/parts/gather/{{.Id}}">Gather stock</a>
+							<a class="btn btn-primary" href="/parts/edit/{{.Id}}">Edit</a>
+						</div>
+					</td>
+				{{end}}
+			</tbody>
+		</table>
+	</div>
+</div>
+{{end}}
