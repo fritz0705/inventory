@@ -5,8 +5,13 @@ import (
 	"net/http"
 	"path"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/fritz0705/inventory/si"
 )
+
+var PartsPerPage = 10
 
 type viewPart struct {
 	*Part
@@ -37,37 +42,128 @@ func buildPartAmountGraph(amounts []*PartAmount) (res [][2]int64) {
 	return res
 }
 
+func splitSiRange(r string) (res [2]si.Number, err error) {
+	parts := strings.SplitN(r, "-", 2)
+	if len(parts) != 2 {
+		panic("inventory: Invalid operation splitSiRange on non-range string")
+	}
+	left, right := parts[0], parts[1]
+
+	leftVal, err := si.Parse(left)
+	if err != nil {
+		return
+	}
+	rightVal, err := si.Parse(right)
+	if err != nil {
+		return
+	}
+
+	res = [2]si.Number{leftVal, rightVal}
+	return
+}
+
+func buildListPartsQuery(r *http.Request) (query string, args []interface{}, err error) {
+	err = r.ParseForm()
+	if err != nil {
+		return
+	}
+
+	query += `SELECT * FROM 'part' WHERE (1=1)`
+
+	lastId, _ := strconv.Atoi(r.Form.Get("last_id"))
+	firstId, _ := strconv.Atoi(r.Form.Get("first_id"))
+
+	if lastId != 0 {
+		query += ` AND "id" > ?`
+		args = append(args, lastId)
+	} else if firstId != 0 {
+		query += ` AND "id" < ?`
+		args = append(args, firstId)
+	}
+
+	if r.Form["category"] != nil {
+		var categoryList []string
+
+		for _, category := range r.Form["category"] {
+			category, _ := strconv.Atoi(category)
+			if category != 0 {
+				categoryList = append(categoryList, strconv.Itoa(category))
+			}
+		}
+
+		query += ` AND "id" IN (` + strings.Join(categoryList, ", ") + `)`
+	}
+
+	if value := r.Form.Get("value"); value != "" {
+		if strings.ContainsRune(value, '-') {
+			// Range query
+			rng, err := splitSiRange(value)
+			if err == nil {
+				query += ` AND "value" BETWEEN ? AND ?`
+				args = append(args, rng[0].Value(), rng[1].Value())
+			}
+		} else {
+			// Value query
+			value, err := si.Parse(value)
+			if err == nil {
+				query += ` AND "value" = ?`
+				args = append(args, value.Value())
+			}
+		}
+	}
+
+	query += ` ORDER BY "id" LIMIT ` + strconv.Itoa(PartsPerPage)
+	if r.Form["page"] != nil {
+		page, _ := strconv.Atoi(r.Form.Get("page"))
+		if page != 0 {
+			query += ` OFFSET ?`
+			args = append(args, page * PartsPerPage)
+		}
+	}
+
+	return
+}
+
 func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		app.CreatePartHandler(w, r)
 		return
 	}
 
-	err := r.ParseForm()
+	tx, err := app.Database.Begin()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
-	rows, err := app.Database.Query(`SELECT * FROM 'part' ORDER BY "id" DESC`)
+	query, args, err := buildListPartsQuery(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
+		return
+	}
+
+	rows, err := tx.Query(query, args...)
+	if err != nil {
+		app.Error(w, err)
 		return
 	}
 
 	parts, err := LoadParts(rows)
+	if err != nil {
+		app.Error(w, err); return
+	}
 	viewParts := make([]*viewPart, len(parts))
 	for n, part := range parts {
-		viewParts[n], err = loadViewPart(part, app.Database)
+		viewParts[n], err = loadViewPart(part, tx)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			app.Error(w, err)
 			return
 		}
 	}
 
-	categories, err := LoadCategories(app.Database, "SELECT * FROM 'category'")
+	categories, err := LoadCategories(tx, "SELECT * FROM 'category'")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
