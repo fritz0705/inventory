@@ -1,3 +1,6 @@
+// Implementation of the metric unit system, also knows as the SI unit system
+// or International System of Units
+
 package si
 
 import (
@@ -6,6 +9,7 @@ import (
 	"strconv"
 )
 
+// Prefix represents the exponent to 10 of a SI prefix
 type Prefix int
 
 const (
@@ -25,6 +29,7 @@ const (
 	Femto = -15
 )
 
+// Prefixes is a list of common SI prefixes
 var Prefixes = []Prefix{
 	Yotta,
 	Zetta,
@@ -42,6 +47,7 @@ var Prefixes = []Prefix{
 	Femto,
 }
 
+// Symbols contains a mapping from SI prefixes to their symbol
 var Symbols = map[Prefix]string{
 	Yotta: "Y",
 	Zetta: "Z",
@@ -59,11 +65,14 @@ var Symbols = map[Prefix]string{
 	Femto: "f",
 }
 
+// A Number is a float64 combined with a Exponent, it is similar to a decimal
+// floating number with the restriction that it imposes additional inaccuracy
 type Number struct {
 	Significand float64
 	Exponent Prefix
 }
 
+// New creates a Number object from a float64
 func New(val float64) Number {
 	return Number{
 		Significand: val,
@@ -71,10 +80,13 @@ func New(val float64) Number {
 	}
 }
 
+// Value returns the real value of a Number object as float64
 func (n Number) Value() float64 {
 	return n.Significand * math.Pow10(int(n.Exponent))
 }
 
+// Canon tries to find the best matching SI prefix for a Value and returns a
+// new Number object holding that
 func (n Number) Canon() Number {
 	val := n.Value()
 	for _, prefix := range Prefixes {
@@ -89,6 +101,7 @@ func (n Number) Canon() Number {
 	return n
 }
 
+// String returns a string representation of a Number
 func (n Number) String() string {
 	return strconv.FormatFloat(n.Significand, 'f', -1, 64) + Symbols[n.Exponent]
 }
@@ -103,6 +116,8 @@ func findPrefixForSymbol(sym string) Prefix {
 	return None
 }
 
+// Parse parses a string representation, which consists of a float string and
+// an optional unit symbol.
 func Parse(s string) (num Number, err error) {
 	f, err := strconv.ParseFloat(s, 64)
 	if err == nil {
