@@ -16,7 +16,7 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if err != nil {
-			http.Error(w, err.Error(), 500)
+			app.Error(w, err)
 			return
 		}
 
@@ -31,7 +31,7 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 		res, err := app.Database.Query(`SELECT * FROM 'user' WHERE 'email' = ?`, email)
 		if err != nil {
-			http.Error(w, err.Error(), 500)
+			app.Error(w, err)
 			return
 		}
 		if !res.Next() {
@@ -42,14 +42,14 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 		err = user.Load(res)
 		if err != nil {
-			http.Error(w, err.Error(), 500)
+			app.Error(w, err)
 			return
 		}
 
 		if user.CheckPassword(password) {
 			session, err := app.Sessions.Get(r, app.SessionName)
 			if err != nil {
-				http.Error(w, err.Error(), 500)
+				app.Error(w, err)
 				return
 			}
 
@@ -79,7 +79,7 @@ func (app *Application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 	case "POST":
 		err := r.ParseForm()
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			app.Error(w, err)
 		}
 
 		if r.PostForm["name"] == nil || r.PostForm["email"] == nil ||
@@ -98,13 +98,13 @@ func (app *Application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 		err = user.Save(app.Database)
 
 		if err != nil {
-			http.Error(w, err.Error(), 500)
+			app.Error(w, err)
 			return
 		}
 
 		session, err := app.Sessions.Get(r, app.SessionName)
 		if err != nil {
-			http.Error(w, err.Error(), 500)
+			app.Error(w, err)
 			return
 		}
 

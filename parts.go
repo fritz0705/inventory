@@ -176,13 +176,13 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 func (app *Application) NewPartHandler(w http.ResponseWriter, r *http.Request) {
 	categories, err := LoadCategories(app.Database, "SELECT * FROM 'category'")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
 	places, err := LoadPlaces(app.Database, "SELECT * FROM 'place'")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
@@ -217,7 +217,7 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 
 	rows, err := app.Database.Query(`SELECT * FROM 'part' WHERE "id" = ? LIMIT 1`, id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 	defer rows.Close()
@@ -229,38 +229,38 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 	part := new(Part)
 	err = part.Load(rows)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
 	latestAmount, err := part.LatestAmount(app.Database)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
 	places, err := LoadPlaces(app.Database, "SELECT * FROM 'place'")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
 	categories, err := LoadCategories(app.Database, "SELECT * FROM 'category'")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
 	category, err := part.Category(app.Database)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
 	partAmounts, err := LoadPartAmounts(app.Database, `SELECT * FROM 'part_amount'
 	WHERE "part_id" = ? ORDER BY 'timestamp' DESC LIMIT 30`, part.Id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
@@ -277,7 +277,7 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 func (app *Application) CreatePartAmountHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
@@ -289,20 +289,20 @@ func (app *Application) CreatePartAmountHandler(w http.ResponseWriter, r *http.R
 
 	amount, err := strconv.Atoi(r.PostFormValue("amount"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
 	tx, err := app.Database.Begin()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 	defer tx.Commit()
 
 	part, err := FindPart(tx, int64(partId))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	} else if part == nil {
 		app.NotFoundHandler(w, r)
@@ -317,7 +317,7 @@ func (app *Application) CreatePartAmountHandler(w http.ResponseWriter, r *http.R
 
 	err = partAmount.Save(tx)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
@@ -335,13 +335,13 @@ func (app *Application) UpdatePartHandler(w http.ResponseWriter, r *http.Request
 
 	err = r.ParseForm()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
 	part, err := FindPart(app.Database, int64(id))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	} else if part == nil {
 		app.NotFoundHandler(w, r)
@@ -350,13 +350,13 @@ func (app *Application) UpdatePartHandler(w http.ResponseWriter, r *http.Request
 
 	err = part.LoadForm(r.PostForm)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
 	err = part.Save(app.Database)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
@@ -366,7 +366,7 @@ func (app *Application) UpdatePartHandler(w http.ResponseWriter, r *http.Request
 func (app *Application) CreatePartHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
@@ -380,7 +380,7 @@ func (app *Application) CreatePartHandler(w http.ResponseWriter, r *http.Request
 	err = part.Save(tx)
 	if err != nil {
 		tx.Rollback()
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
@@ -399,7 +399,7 @@ func (app *Application) CreatePartHandler(w http.ResponseWriter, r *http.Request
 	err = partAmount.Save(tx)
 	if err != nil {
 		tx.Rollback()
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
@@ -417,7 +417,7 @@ func (app *Application) EmptyPartHandler(w http.ResponseWriter, r *http.Request)
 
 	rows, err := app.Database.Query(`SELECT * FROM 'part' WHERE "id" = ? LIMIT 1`, id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 	if !rows.Next() {
@@ -434,7 +434,7 @@ func (app *Application) EmptyPartHandler(w http.ResponseWriter, r *http.Request)
 
 	err = partAmount.Save(app.Database)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
@@ -451,13 +451,13 @@ func (app *Application) DeletePartHandler(w http.ResponseWriter, r *http.Request
 
 	res, err := app.Database.Exec(`DELETE FROM 'part' WHERE "id" = ?`, id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
 	aff, err := res.RowsAffected()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 

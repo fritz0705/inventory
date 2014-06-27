@@ -12,7 +12,7 @@ func (app *Application) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	// First Step: Look for part which has the same name or id
 	part, err := LoadPart(app.Database, `SELECT * FROM 'part' WHERE "name" = ? LIMIT 1`, query)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 

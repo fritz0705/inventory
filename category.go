@@ -14,7 +14,7 @@ func (app *Application) ListCategoriesHandler(w http.ResponseWriter, r *http.Req
 
 	categories, err := LoadCategories(app.Database, `SELECT * FROM 'category'`)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
@@ -28,7 +28,7 @@ func (app *Application) NewCategoryHandler(w http.ResponseWriter, r *http.Reques
 func (app *Application) CreateCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
@@ -37,7 +37,7 @@ func (app *Application) CreateCategoryHandler(w http.ResponseWriter, r *http.Req
 
 	err = category.Save(app.Database)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
@@ -64,13 +64,13 @@ func (app *Application) DeleteCategoryHandler(w http.ResponseWriter, r *http.Req
 
 	res, err := app.Database.Exec(`DELETE FROM 'category' WHERE "id" = ?`, id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	}
 
 	aff, err := res.RowsAffected()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		app.Error(w, err)
 		return
 	} else if aff == 0 {
 		app.NotFoundHandler(w, r)
