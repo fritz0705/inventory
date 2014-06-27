@@ -135,6 +135,7 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 		app.Error(w, err)
 		return
 	}
+	defer tx.Commit()
 
 	query, args, err := buildListPartsQuery(r)
 	if err != nil {
