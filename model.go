@@ -1,6 +1,8 @@
 package inventory
 
 import (
+	"crypto/rand"
+	"crypto/subtle"
 	"database/sql"
 	"io"
 	"net/url"
@@ -8,6 +10,7 @@ import (
 	"time"
 
 	"github.com/fritz0705/inventory/si"
+	"code.google.com/p/go.crypto/scrypt"
 )
 
 type Execer interface {
@@ -168,11 +171,26 @@ func FindPart(db Queryer, id int64) (*Part, error) {
 }
 
 func (u *User) SetPassword(password string) {
-	u.PasswordHash = []byte(password)
+	var err error
+
+	u.PasswordSalt = make([]byte, 16)
+	_, err = rand.Read(u.PasswordSalt)
+	if err != nil {
+		panic(err)
+	}
+
+	u.PasswordHash, err = scrypt.Key([]byte(password), u.PasswordSalt, 16384, 8, 1, 32)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (u *User) CheckPassword(password string) bool {
-	return password == string(u.PasswordHash)
+	passwordHash, err := scrypt.Key([]byte(password), u.PasswordSalt, 16384, 8, 1, 32)
+	if err != nil {
+		panic(err)
+	}
+	return subtle.ConstantTimeCompare(passwordHash, u.PasswordHash) == 1
 }
 
 func (u *User) Save(db Execer) error {
