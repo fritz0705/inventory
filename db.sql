@@ -58,3 +58,22 @@ CREATE TABLE IF NOT EXISTS 'place' (
 	'id' INTEGER PRIMARY KEY,
 	'name' TEXT NOT NULL
 );
+
+CREATE VIEW IF NOT EXISTS 'part_view' AS SELECT 'part'."id" AS 'id',
+	'part'."name" AS 'name',
+	'part'."value" AS 'value',
+	'part'."description" AS 'description',
+	'part'."category_id" AS 'category_id',
+	'category'."name" AS 'category_name',
+	'category'."unit" AS 'unit',
+	'category'."unit_symbol" AS 'unit_symbol',
+	'part'."place_id" AS 'place_id',
+	'place'."name" AS 'place_name',
+	"part_amount" AS 'amount'
+	FROM 'part'
+	LEFT JOIN 'category' ON 'category'.'id' = 'part'.'category_id'
+	LEFT JOIN 'place' ON 'place'.'id' = 'part'.'place_id'
+	LEFT JOIN (SELECT "amount" AS 'part_amount',
+		"part_id" AS 'part_amount_part_id' FROM 'part_amount'
+		GROUP BY "part_amount_part_id"
+		ORDER BY "timestamp" DESC) ON "part_amount_part_id" = 'part'.'id';
