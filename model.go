@@ -135,6 +135,22 @@ func LoadPart(db Queryer, query string, p ...interface{}) (*Part, error) {
 	return part, err
 }
 
+func FindCategory(db Queryer, id int64) (*Category, error) {
+	rows, err := db.Query(`SELECT * FROM 'category' WHERE "id" = ? LIMIT 1`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		return nil, nil
+	}
+
+	category := new(Category)
+	err = category.Load(rows)
+
+	return category, err
+}
+
 func FindPart(db Queryer, id int64) (*Part, error) {
 	rows, err := db.Query(`SELECT * FROM 'part' WHERE "id" = ? LIMIT 1`, id)
 	if err != nil {

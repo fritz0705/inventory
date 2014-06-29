@@ -63,3 +63,39 @@
 	</div>
 </form>
 {{end}}
+
+{{define "EditCategory"}}
+{{with .Data}}
+<ol class="breadcrumb">
+	<li><a href="/">Home</a></li>
+	<li><a href="/categories">Categories</a></li>
+	<li class="active">Edit {{.Id}}</li>
+</ol>
+
+<form role="form" class="form-horizontal" method="POST" action="/categories/edit/{{.Id}}">
+	<div class="form-group">
+		<label for="categoryName" class="col-sm-2 control-label">Name</label>
+		<div class="col-sm-10">
+			<input type="text" class="form-control" id="categoryName" name="name" placeholder="Category name" value="{{.Name}}" />
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="categoryUnit" class="col-sm-2 control-label">Unit</label>
+		<div class="col-sm-10">
+			<input type="text" class="form-control" id="categoryUnit" name="unit" placeholder="Category unit, e.g. Ohm" value="{{.Unit.Value}}" />
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="categoryUnitSymbol" class="col-sm-2 control-label">Unit symbol</label>
+		<div class="col-sm-10">
+			<input type="text" class="form-control" id="categoryUnitSymbol" name="unit_symbol" placeholder="Unit symbol, e.g. Ω" value="{{.UnitSymbol.Value}}" />
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-offset-2 col-sm-10">
+			<button type="submit" class="btn btn-primary">Update category</button>
+		</div>
+	</div>
+</form>
+{{end}}
+{{end}}

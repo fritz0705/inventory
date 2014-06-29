@@ -49,9 +49,69 @@ func (app *Application) EditCategoryHandler(w http.ResponseWriter, r *http.Reque
 		app.UpdateCategoryHandler(w, r)
 		return
 	}
+
+	id, _ := strconv.Atoi(path.Base(r.URL.Path))
+	if id == 0 {
+		app.NotFoundHandler(w, r)
+		return
+	}
+
+	rows, err := app.Database.Query(`SELECT * FROM 'category' WHERE "id" = ? LIMIT 1`, id)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		app.NotFoundHandler(w, r)
+		return
+	}
+
+	category := new(Category)
+	err = category.Load(rows)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	app.renderTemplate(w, r, category, "EditCategory", "Layout")
 }
 
 func (app *Application) UpdateCategoryHandler(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(path.Base(r.URL.Path))
+	if id == 0 {
+		app.NotFoundHandler(w, r)
+		return
+	}
+
+	err := r.ParseForm()
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	category, err := FindCategory(app.Database, int64(id))
+	if err != nil {
+		app.Error(w, err)
+		return
+	} else if category == nil {
+		app.NotFoundHandler(w, r)
+		return
+	}
+
+	err = category.LoadForm(r.PostForm)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	err = category.Save(app.Database)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	http.Redirect(w, r, "/categories", http.StatusFound)
 }
 
 func (app *Application) DeleteCategoryHandler(w http.ResponseWriter, r *http.Request) {
