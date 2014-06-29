@@ -29,7 +29,7 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 		var user User
 
-		res, err := app.Database.Query(`SELECT * FROM 'user' WHERE 'email' = ?`, email)
+		res, err := app.Database.Query(`SELECT * FROM 'user' WHERE "email" = ? LIMIT 1`, email)
 		if err != nil {
 			app.Error(w, err)
 			return
