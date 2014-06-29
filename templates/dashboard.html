@@ -21,7 +21,7 @@
 				{{range .Data.Parts}}
 				<tr>
 					<td>{{.Name}}</td>
-					<td>{{.Value.Float64}}</td>
+					<td>{{.Value.Float64|siCanon}}</td>
 					<td><a href="/parts/edit/{{.Id}}" class="btn btn-primary btn-sm">Edit</a></td>
 				</tr>
 				{{end}}

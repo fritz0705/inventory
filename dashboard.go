@@ -5,7 +5,7 @@ import (
 )
 
 func (app *Application) newestParts() ([]*Part, error) {
-	rows, err := app.Database.Query(`SELECT * FROM 'part' ORDER BY 'created_at' DESC LIMIT 5`)
+	rows, err := app.Database.Query(`SELECT * FROM 'part' ORDER BY "created_at" DESC LIMIT 5`)
 	if err != nil {
 		return nil, err
 	}
