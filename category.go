@@ -56,21 +56,12 @@ func (app *Application) EditCategoryHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	rows, err := app.Database.Query(`SELECT * FROM 'category' WHERE "id" = ? LIMIT 1`, id)
+	category, err := FindCategory(app.Database, int64(id))
 	if err != nil {
 		app.Error(w, err)
 		return
-	}
-	defer rows.Close()
-	if !rows.Next() {
+	} else if category == nil {
 		app.NotFoundHandler(w, r)
-		return
-	}
-
-	category := new(Category)
-	err = category.Load(rows)
-	if err != nil {
-		app.Error(w, err)
 		return
 	}
 

@@ -216,21 +216,12 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	rows, err := app.Database.Query(`SELECT * FROM 'part' WHERE "id" = ? LIMIT 1`, id)
+	part, err := FindPart(app.Database, int64(id))
 	if err != nil {
 		app.Error(w, err)
 		return
-	}
-	defer rows.Close()
-	if !rows.Next() {
+	} else if part == nil {
 		app.NotFoundHandler(w, r)
-		return
-	}
-
-	part := new(Part)
-	err = part.Load(rows)
-	if err != nil {
-		app.Error(w, err)
 		return
 	}
 
