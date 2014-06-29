@@ -62,12 +62,10 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		session, err := app.Sessions.Get(r, app.SessionName)
-		if err == nil && session != nil && !session.IsNew {
-			delete(session.Values, "userId")
-			session.Save(r, w)
-		}
+	session, err := app.Sessions.Get(r, app.SessionName)
+	if err == nil && session != nil && !session.IsNew {
+		delete(session.Values, "userId")
+		session.Save(r, w)
 	}
 	http.Redirect(w, r, "/", http.StatusFound)
 }
