@@ -14,6 +14,7 @@ type Application struct {
 	Sessions  sessions.Store
 
 	SessionName string
+	AssetsPath string
 
 	*http.ServeMux
 }
@@ -22,6 +23,7 @@ func NewApplication() *Application {
 	app := &Application{
 		SessionName: "SESSION",
 		ServeMux:    http.NewServeMux(),
+		AssetsPath: "bower_components",
 	}
 
 	app.SetUpRoutes()
@@ -61,6 +63,8 @@ func (app *Application) SetUpRoutes() {
 	app.HandleFunc("/places", app.ListPlacesHandler)
 	app.HandleFunc("/places/new", app.NewPlaceHandler)
 	app.HandleFunc("/places/delete/", app.DeletePlaceHandler)
+
+	app.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(app.AssetsPath))))
 
 	app.HandleFunc("/", app.RootHandler)
 }

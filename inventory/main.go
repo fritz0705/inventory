@@ -15,6 +15,7 @@ import (
 
 type Config struct {
 	Database string
+	AssetsPath string
 }
 
 func handlerFactory(configFile string) (http.Handler, error) {
