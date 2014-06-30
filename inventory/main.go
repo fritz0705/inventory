@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"flag"
 	"log"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	_ "code.google.com/p/go-sqlite/go1/sqlite3"
+	"github.com/jmoiron/sqlx"
 	"github.com/fritz0705/inventory"
 )
 
@@ -38,8 +38,8 @@ func handlerFactory(configFile string) (http.Handler, error) {
 	var err error
 
 	handler := inventory.NewApplication()
-	handler.Database, err = sql.Open("sqlite3", config.Database)
-	handler.Database.Exec("PRAGMA foreign_keys = on")
+	handler.DB, err = sqlx.Open("sqlite3", config.Database)
+	handler.DB.Exec("PRAGMA foreign_keys = on")
 
 	return handler, err
 }

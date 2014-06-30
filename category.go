@@ -12,7 +12,8 @@ func (app *Application) ListCategoriesHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	categories, err := LoadCategories(app.Database, `SELECT * FROM 'category'`)
+	var categories []Category
+	err := app.DB.Select(&categories, `SELECT * FROM 'category'`)
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -35,7 +36,7 @@ func (app *Application) CreateCategoryHandler(w http.ResponseWriter, r *http.Req
 	category := new(Category)
 	category.LoadForm(r.PostForm)
 
-	err = category.Save(app.Database)
+	err = category.Save(app.DB)
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -56,7 +57,8 @@ func (app *Application) EditCategoryHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	category, err := FindCategory(app.Database, int64(id))
+	category := &Category{}
+	err := app.DB.Get(category, `SELECT * FROM 'category' WHERE "id" = ?`, id)
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -81,7 +83,7 @@ func (app *Application) UpdateCategoryHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	category, err := FindCategory(app.Database, int64(id))
+	category, err := FindCategory(app.DB, int64(id))
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -96,7 +98,7 @@ func (app *Application) UpdateCategoryHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = category.Save(app.Database)
+	err = category.Save(app.DB)
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -113,7 +115,7 @@ func (app *Application) DeleteCategoryHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	res, err := app.Database.Exec(`DELETE FROM 'category' WHERE "id" = ?`, id)
+	res, err := app.DB.Exec(`DELETE FROM 'category' WHERE "id" = ?`, id)
 	if err != nil {
 		app.Error(w, err)
 		return

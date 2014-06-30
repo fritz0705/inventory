@@ -1,16 +1,16 @@
 package inventory
 
 import (
-	"database/sql"
 	"html/template"
 	"net/http"
 
 	"github.com/gorilla/sessions"
+	"github.com/jmoiron/sqlx"
 )
 
 type Application struct {
 	Templates *template.Template
-	Database  *sql.DB
+	DB        *sqlx.DB
 	Sessions  sessions.Store
 
 	SessionName string

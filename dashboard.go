@@ -5,7 +5,7 @@ import (
 )
 
 func (app *Application) newestParts() ([]*Part, error) {
-	rows, err := app.Database.Query(`SELECT * FROM 'part' ORDER BY "created_at" DESC LIMIT 5`)
+	rows, err := app.DB.Query(`SELECT * FROM 'part' ORDER BY "created_at" DESC LIMIT 5`)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +24,7 @@ func (app *Application) newestParts() ([]*Part, error) {
 }
 
 func (app *Application) outOfStockParts() ([]*viewPart, error) {
-	rows, err := app.Database.Query(`SELECT 'part'.* FROM 'part_amount' JOIN
+	rows, err := app.DB.Query(`SELECT 'part'.* FROM 'part_amount' JOIN
 	'part' ON 'part'.'id' = 'part_amount'.'part_id' GROUP BY "part_id" HAVING
 	"amount" = 0 ORDER BY "timestamp" DESC LIMIT 5`)
 
@@ -39,7 +39,7 @@ func (app *Application) outOfStockParts() ([]*viewPart, error) {
 		if err != nil {
 			return nil, err
 		}
-		viewPart, err := loadViewPart(part, app.Database)
+		viewPart, err := loadViewPart(part, app.DB)
 		viewParts = append(viewParts, viewPart)
 	}
 

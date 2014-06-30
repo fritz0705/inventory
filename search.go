@@ -10,7 +10,7 @@ func (app *Application) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	print(query)
 
 	// First Step: Look for part which has the same name or id
-	part, err := LoadPart(app.Database, `SELECT * FROM 'part' WHERE "name" = ? LIMIT 1`, query)
+	part, err := LoadPart(app.DB, `SELECT * FROM 'part' WHERE "name" = ? LIMIT 1`, query)
 	if err != nil {
 		app.Error(w, err)
 		return

@@ -12,7 +12,7 @@ func (app *Application) ListPlacesHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	places, err := LoadPlaces(app.Database, `SELECT * FROM 'place'`)
+	places, err := LoadPlaces(app.DB, `SELECT * FROM 'place'`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -31,7 +31,7 @@ func (app *Application) CreatePlaceHandler(w http.ResponseWriter, r *http.Reques
 	place := new(Place)
 	err = place.LoadForm(r.PostForm)
 
-	err = place.Save(app.Database)
+	err = place.Save(app.DB)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -52,7 +52,7 @@ func (app *Application) DeletePlaceHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	res, err := app.Database.Exec(`DELETE FROM 'place' WHERE "id" = ?`, id)
+	res, err := app.DB.Exec(`DELETE FROM 'place' WHERE "id" = ?`, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

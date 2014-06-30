@@ -29,7 +29,7 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 		var user User
 
-		res, err := app.Database.Query(`SELECT * FROM 'user' WHERE "email" = ? LIMIT 1`, email)
+		res, err := app.DB.Query(`SELECT * FROM 'user' WHERE "email" = ? LIMIT 1`, email)
 		if err != nil {
 			app.Error(w, err)
 			return
@@ -93,7 +93,7 @@ func (app *Application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 		}
 		user.SetPassword(r.PostForm.Get("password"))
 
-		err = user.Save(app.Database)
+		err = user.Save(app.DB)
 
 		if err != nil {
 			app.Error(w, err)

@@ -1,8 +1,8 @@
 package inventory
 
 import (
-	"net/http"
 	"log"
+	"net/http"
 )
 
 func (app *Application) NotFoundHandler(w http.ResponseWriter, r *http.Request) {
