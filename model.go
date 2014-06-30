@@ -13,68 +13,70 @@ import (
 	"github.com/fritz0705/inventory/si"
 )
 
-type Execer interface {
-	Exec(string, ...interface{}) (sql.Result, error)
-}
+type (
+	Execer interface {
+		Exec(string, ...interface{}) (sql.Result, error)
+	}
 
-type Queryer interface {
-	Query(string, ...interface{}) (*sql.Rows, error)
-}
+	Queryer interface {
+		Query(string, ...interface{}) (*sql.Rows, error)
+	}
 
-type User struct {
-	Id           int64        `db:"id"`
-	Name         string       `db:"name"`
-	Email        string       `db:"email"`
-	PasswordHash []byte       `db:"password_hash"`
-	PasswordSalt []byte       `db:"password_salt"`
-	IsActive     sql.NullBool `db:"is_active"`
-	CreatedAt    time.Time    `db:"created_at"`
-	UpdatedAt    time.Time    `db:"updated_at"`
-}
+	User struct {
+		Id           int64        `db:"id"`
+		Name         string       `db:"name"`
+		Email        string       `db:"email"`
+		PasswordHash []byte       `db:"password_hash"`
+		PasswordSalt []byte       `db:"password_salt"`
+		IsActive     sql.NullBool `db:"is_active"`
+		CreatedAt    time.Time    `db:"created_at"`
+		UpdatedAt    time.Time    `db:"updated_at"`
+	}
 
-type Part struct {
-	Id          int64           `db:"id"`
-	Name        string          `db:"name"`
-	Description sql.NullString  `db:"description"`
-	Value       sql.NullFloat64 `db:"value"`
-	CategoryId  int64           `db:"category_id"`
-	PlaceId     sql.NullInt64   `db:"place_id"`
-	OwnerId     sql.NullInt64   `db:"owner_id"`
-	CreatedAt   time.Time       `db:"created_at"`
-}
+	Part struct {
+		Id          int64           `db:"id"`
+		Name        string          `db:"name"`
+		Description sql.NullString  `db:"description"`
+		Value       sql.NullFloat64 `db:"value"`
+		CategoryId  int64           `db:"category_id"`
+		PlaceId     sql.NullInt64   `db:"place_id"`
+		OwnerId     sql.NullInt64   `db:"owner_id"`
+		CreatedAt   time.Time       `db:"created_at"`
+	}
 
-type PartView struct {
-	Id           int64           `db:"id"`
-	Name         string          `db:"name"`
-	Value        sql.NullFloat64 `db:"value"`
-	Description  sql.NullString  `db:"description"`
-	CategoryId   int64           `db:"category_id"`
-	CategoryName string          `db:"category_name"`
-	Unit         sql.NullString  `db:"unit"`
-	UnitSymbol   sql.NullString  `db:"unit_symbol"`
-	PlaceId      sql.NullInt64   `db:"place_id"`
-	PlaceName    sql.NullString  `db:"place_name"`
-	Amount       int64           `db:"amount"`
-}
+	PartView struct {
+		Id           int64           `db:"id"`
+		Name         string          `db:"name"`
+		Value        sql.NullFloat64 `db:"value"`
+		Description  sql.NullString  `db:"description"`
+		CategoryId   int64           `db:"category_id"`
+		CategoryName string          `db:"category_name"`
+		Unit         sql.NullString  `db:"unit"`
+		UnitSymbol   sql.NullString  `db:"unit_symbol"`
+		PlaceId      sql.NullInt64   `db:"place_id"`
+		PlaceName    sql.NullString  `db:"place_name"`
+		Amount       int64           `db:"amount"`
+	}
 
-type Category struct {
-	Id         int64          `db:"id"`
-	Name       string         `db:"name"`
-	Unit       sql.NullString `db:"unit"`
-	UnitSymbol sql.NullString `db:"unit_symbol"`
-}
+	Category struct {
+		Id         int64          `db:"id"`
+		Name       string         `db:"name"`
+		Unit       sql.NullString `db:"unit"`
+		UnitSymbol sql.NullString `db:"unit_symbol"`
+	}
 
-type PartAmount struct {
-	Id        int64     `db:"id"`
-	PartId    int64     `db:"name"`
-	Amount    int64     `db:"amount"`
-	Timestamp time.Time `db:"timestamp"`
-}
+	PartAmount struct {
+		Id        int64     `db:"id"`
+		PartId    int64     `db:"name"`
+		Amount    int64     `db:"amount"`
+		Timestamp time.Time `db:"timestamp"`
+	}
 
-type Place struct {
-	Id   int64  `db:"id"`
-	Name string `db:"name"`
-}
+	Place struct {
+		Id   int64  `db:"id"`
+		Name string `db:"name"`
+	}
+)
 
 func LoadCategories(db Queryer, query string, p ...interface{}) ([]*Category, error) {
 	rows, err := db.Query(query, p...)
