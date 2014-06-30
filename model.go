@@ -67,7 +67,7 @@ type (
 
 	PartAmount struct {
 		Id        int64     `db:"id"`
-		PartId    int64     `db:"name"`
+		PartId    int64     `db:"part_id"`
 		Amount    int64     `db:"amount"`
 		Timestamp time.Time `db:"timestamp"`
 	}
@@ -77,114 +77,6 @@ type (
 		Name string `db:"name"`
 	}
 )
-
-func LoadCategories(db Queryer, query string, p ...interface{}) ([]*Category, error) {
-	rows, err := db.Query(query, p...)
-	if err != nil {
-		return nil, err
-	}
-
-	categories := make([]*Category, 0)
-	for rows.Next() {
-		category := new(Category)
-		err := category.Load(rows)
-		if err != nil {
-			return nil, err
-		}
-		categories = append(categories, category)
-	}
-
-	return categories, nil
-}
-
-func LoadPlaces(db Queryer, query string, p ...interface{}) ([]*Place, error) {
-	rows, err := db.Query(query, p...)
-	if err != nil {
-		return nil, err
-	}
-
-	places := make([]*Place, 0)
-	for rows.Next() {
-		place := new(Place)
-		err := place.Load(rows)
-		if err != nil {
-			return nil, err
-		}
-		places = append(places, place)
-	}
-
-	return places, nil
-}
-
-func LoadPartAmounts(db Queryer, query string, p ...interface{}) ([]*PartAmount, error) {
-	rows, err := db.Query(query, p...)
-	if err != nil {
-		return nil, err
-	}
-
-	partAmounts := make([]*PartAmount, 0)
-	for rows.Next() {
-		partAmount := new(PartAmount)
-		err := partAmount.Load(rows)
-		if err != nil {
-			return nil, err
-		}
-		partAmounts = append(partAmounts, partAmount)
-	}
-
-	return partAmounts, nil
-}
-
-func LoadPart(db Queryer, query string, p ...interface{}) (*Part, error) {
-	rows, err := db.Query(query, p...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return nil, nil
-	}
-
-	part := new(Part)
-	err = part.Load(rows)
-	if err != nil {
-		return nil, err
-	}
-
-	return part, err
-}
-
-func FindCategory(db Queryer, id int64) (*Category, error) {
-	rows, err := db.Query(`SELECT * FROM 'category' WHERE "id" = ? LIMIT 1`, id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return nil, nil
-	}
-
-	category := new(Category)
-	err = category.Load(rows)
-
-	return category, err
-}
-
-func FindPart(db Queryer, id int64) (*Part, error) {
-	rows, err := db.Query(`SELECT * FROM 'part' WHERE "id" = ? LIMIT 1`, id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return nil, nil
-	}
-
-	part := new(Part)
-	err = part.Load(rows)
-
-	return part, err
-}
 
 func (u *User) SetPassword(password string) {
 	var err error

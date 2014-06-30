@@ -83,7 +83,8 @@ func (app *Application) UpdateCategoryHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	category, err := FindCategory(app.DB, int64(id))
+	category := new(Category)
+	err = app.DB.Get(category, `SELECT * FROM 'category' WHERE "id" = ?`, id)
 	if err != nil {
 		app.Error(w, err)
 		return

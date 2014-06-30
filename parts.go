@@ -35,7 +35,7 @@ func loadViewPart(part *Part, db Queryer) (*viewPart, error) {
 	return viewPart, err
 }
 
-func buildPartAmountGraph(amounts []*PartAmount) (res [][2]int64) {
+func buildPartAmountGraph(amounts []PartAmount) (res [][2]int64) {
 	for _, amount := range amounts {
 		res = append(res, [2]int64{amount.Timestamp.Unix() * 1000, amount.Amount})
 	}
@@ -143,27 +143,23 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	rows, err := tx.Query(query, args...)
-	if err != nil {
-		app.Error(w, err)
-		return
-	}
-
-	parts, err := LoadParts(rows)
+	parts := []Part{}
+	err = app.DB.Select(&parts, query, args...)
 	if err != nil {
 		app.Error(w, err)
 		return
 	}
 	viewParts := make([]*viewPart, len(parts))
 	for n, part := range parts {
-		viewParts[n], err = loadViewPart(part, tx)
+		viewParts[n], err = loadViewPart(&part, tx)
 		if err != nil {
 			app.Error(w, err)
 			return
 		}
 	}
 
-	categories, err := LoadCategories(tx, "SELECT * FROM 'category'")
+	categories := []Category{}
+	err = app.DB.Select(&categories, `SELECT * FROM 'category'`)
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -176,13 +172,15 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (app *Application) NewPartHandler(w http.ResponseWriter, r *http.Request) {
-	categories, err := LoadCategories(app.DB, "SELECT * FROM 'category'")
+	categories := []Category{}
+	err := app.DB.Select(&categories, `SELECT * FROM 'category'`)
 	if err != nil {
 		app.Error(w, err)
 		return
 	}
 
-	places, err := LoadPlaces(app.DB, "SELECT * FROM 'place'")
+	places := []Place{}
+	err = app.DB.Select(&places, `SELECT * FROM 'place'`)
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -217,7 +215,8 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	part, err := FindPart(app.DB, int64(id))
+	part := new(Part)
+	err = app.DB.Get(part, `SELECT * FROM 'part' WHERE "id" = ?`, id)
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -232,13 +231,15 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	places, err := LoadPlaces(app.DB, "SELECT * FROM 'place'")
+	places := []Place{}
+	err = app.DB.Select(&places, `SELECT * FROM 'place'`)
 	if err != nil {
 		app.Error(w, err)
 		return
 	}
 
-	categories, err := LoadCategories(app.DB, "SELECT * FROM 'category'")
+	categories := []Category{}
+	err = app.DB.Select(&categories, `SELECT * FROM 'category'`)
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -250,8 +251,9 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	partAmounts, err := LoadPartAmounts(app.DB, `SELECT * FROM 'part_amount'
-	WHERE "part_id" = ? ORDER BY 'timestamp' DESC LIMIT 30`, part.Id)
+	partAmounts := []PartAmount{}
+	err = app.DB.Select(&partAmounts, `SELECT * FROM 'part_amount'
+	WHERE "part_id" = ? ORDER BY "timestamp" DESC LIMIT 30`, part.Id)
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -293,7 +295,8 @@ func (app *Application) CreatePartAmountHandler(w http.ResponseWriter, r *http.R
 	}
 	defer tx.Commit()
 
-	part, err := FindPart(tx, int64(partId))
+	part := new(Part)
+	err = app.DB.Get(part, `SELECT * FROM 'part' WHERE "id" = ?`, partId)
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -332,7 +335,8 @@ func (app *Application) UpdatePartHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	part, err := FindPart(app.DB, int64(id))
+	part := new(Part)
+	err = app.DB.Get(part, `SELECT * FROM 'part' WHERE "id" = ?`, id)
 	if err != nil {
 		app.Error(w, err)
 		return

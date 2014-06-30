@@ -12,7 +12,8 @@ func (app *Application) ListPlacesHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	places, err := LoadPlaces(app.DB, `SELECT * FROM 'place'`)
+	places := []Place{}
+	err := app.DB.Select(&places, `SELECT * FROM 'place'`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
