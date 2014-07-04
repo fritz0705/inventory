@@ -19,31 +19,26 @@
 			</thead>
 			<tbody>
 				{{range .Data.Parts}}
-				<tr class="{{with .LatestAmount}}{{if eq .Amount 0}}danger{{end}}{{end}}">
+				<tr class="{{if eq .Amount 0}}danger{{end}}">
 					<td>{{.Name}}</td>
 					<td>
-						{{if .Category.Unit.Valid}}
 						{{if .Value.Valid}}
-						{{.Value.Value|siCanon}}{{with .Category}}{{if .UnitSymbol.Valid}}{{.UnitSymbol.String}}{{end}}{{end}}
-						{{else}}
-						unknown
+						{{.Value.Value|siCanon}}
 						{{end}}
+						{{if .Unit.Valid}}
+						{{.UnitSymbol.Value}}
 						{{else}}
-						{{.Category.Name}}
+						{{.CategoryName}}
 						{{end}}
 					</td>
 					<td>
-						{{with .LatestAmount}}
 						{{.Amount}}
-						{{else}}
-						unknown
-						{{end}}
 					</td>
 					<td>
-						{{with .Place}}
-						{{.Name}}
+						{{if .PlaceName.Valid}}
+						{{.PlaceName.Value}}
 						{{else}}
-						unknown
+						(none)
 						{{end}}
 					</td>
 					<td>
@@ -152,37 +147,39 @@
 {{end}}
 
 {{define "EditPart"}}
+{{with .Data}}
 <ol class="breadcrumb">
 	<li><a href="/">Home</a></li>
 	<li><a href="/parts">Parts</a></li>
-	<li>{{.Data.Obj.Name}}</li>
+	<li>{{.Part.Name}}</li>
 	<li class="active">Edit</li>
 </ol>
 
-{{with .Data}}
 <div class="row">
 	<div class="col-md-8">
-		<form class="form-horizontal" role="form" method="POST" action="/parts/edit/{{.Obj.Id}}">
+		<form class="form-horizontal" role="form" method="POST" action="/parts/edit/{{.Part.Id}}">
 			<div class="form-group">
 				<label for="partName" class="col-sm-2 control-label">Name</label>
 				<div class="col-sm-10">
-					<input type="text" class="form-control" id="partName" placeholder="Name, e.g. R10-1/4" name="name" value="{{.Obj.Name}}" />
+					<input type="text" class="form-control" id="partName" placeholder="Name, e.g. R10-1/4" name="name" value="{{.Part.Name}}" />
 				</div>
 			</div>
 			<div class="form-group">
 				<label for="partDescription" class="col-sm-2 control-label">Description</label>
 				<div class="col-sm-10">
-					<textarea id="partDescription" class="form-control" rows="3" name="description" placeholder="Description">{{.Obj.Description|unnull}}</textarea>
+					<textarea id="partDescription" class="form-control" rows="3" name="description" placeholder="Description">{{.Part.Description|unnull}}</textarea>
 				</div>
 			</div>
 			<div class="form-group">
 				<label for="partValue" class="col-sm-2 control-label">Value</label>
 				<div class="col-sm-10">
 					<div class="input-group">
-						<input type="text" class="form-control" id="partValue" placeholder="Value with optional SI prefix" name="value" value="{{.Obj.Value|unnull|siCanon}}" />
+						<input type="text" class="form-control" id="partValue" placeholder="Value with optional SI prefix" name="value" value="{{.Part.Value|unnull|siCanon}}" />
+						{{if .Part.UnitSymbol.Valid}}
 						<span class="input-group-addon">
-							{{if .Category.UnitSymbol.Valid}}{{.Category.UnitSymbol.Value}}{{end}}
+							{{.Part.UnitSymbol.Value}}
 						</span>
+						{{end}}
 					</div>
 				</div>
 			</div>
@@ -192,7 +189,7 @@
 					<select class="form-control" name="place">
 						<option value="0">(none)</option>
 						{{range .Places}}
-						<option {{if eq .Id $.Data.Obj.PlaceId.Int64}}selected{{end}} value="{{.Id}}">{{.Name}}</option>
+						<option {{if eq .Id $.Data.Part.PlaceId.Int64}}selected{{end}} value="{{.Id}}">{{.Name}}</option>
 						{{end}}
 					</select>
 				</div>
@@ -202,7 +199,7 @@
 				<div class="col-sm-10">
 					<select class="form-control" name="category">
 						{{range .Categories}}
-						<option {{if eq .Id $.Data.Obj.CategoryId}}selected{{end}} value="{{.Id}}">{{.Name}}{{if .Unit.Valid}} ({{.Unit|unnull}}){{end}}</option>
+						<option {{if eq .Id $.Data.Part.CategoryId}}selected{{end}} value="{{.Id}}">{{.Name}}{{if .Unit.Valid}} ({{.Unit|unnull}}){{end}}</option>
 						{{end}}
 					</select>
 				</div>
@@ -215,8 +212,8 @@
 		</form>
 	</div>
 	<div class="col-md-4">
-		<p><strong>Current stock</strong> {{.LatestAmount.Amount}}</p>
-		<form class="form" role="form" method="POST" action="/parts/record/{{.Obj.Id}}">
+		<p><strong>Current stock</strong> {{.Part.Amount}}</p>
+		<form class="form" role="form" method="POST" action="/parts/record/{{.Part.Id}}">
 			<div class="row">
 				<div class="input-group">
 					<input type="text" class="form-control" name="amount" placeholder="New stock" />

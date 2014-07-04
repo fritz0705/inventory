@@ -14,7 +14,7 @@ type Application struct {
 	Sessions  sessions.Store
 
 	SessionName string
-	AssetsPath string
+	AssetsPath  string
 
 	*http.ServeMux
 }
@@ -23,7 +23,7 @@ func NewApplication() *Application {
 	app := &Application{
 		SessionName: "SESSION",
 		ServeMux:    http.NewServeMux(),
-		AssetsPath: "bower_components",
+		AssetsPath:  "bower_components",
 	}
 
 	app.SetUpRoutes()

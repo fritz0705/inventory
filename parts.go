@@ -13,28 +13,6 @@ import (
 
 var PartsPerPage = 10
 
-type viewPart struct {
-	*Part
-	Category     *Category
-	LatestAmount *PartAmount
-	Place        *Place
-}
-
-func loadViewPart(part *Part, db Queryer) (*viewPart, error) {
-	var err error
-
-	viewPart := new(viewPart)
-	viewPart.Part = part
-	viewPart.Category, err = part.Category(db)
-	viewPart.Place, err = part.Place(db)
-	if err != nil {
-		return viewPart, err
-	}
-
-	viewPart.LatestAmount, err = part.LatestAmount(db)
-	return viewPart, err
-}
-
 func buildPartAmountGraph(amounts []PartAmount) (res [][2]int64) {
 	for _, amount := range amounts {
 		res = append(res, [2]int64{amount.Timestamp.Unix() * 1000, amount.Amount})
@@ -68,7 +46,7 @@ func buildListPartsQuery(r *http.Request) (query string, args []interface{}, err
 		return
 	}
 
-	query += `SELECT * FROM 'part' WHERE (1=1)`
+	query += `SELECT * FROM 'part_view' WHERE (1=1)`
 
 	lastId, _ := strconv.Atoi(r.Form.Get("last_id"))
 	firstId, _ := strconv.Atoi(r.Form.Get("first_id"))
@@ -129,12 +107,7 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 		app.CreatePartHandler(w, r)
 		return
 	}
-
-	tx, err := app.DB.Begin()
-	if err != nil {
-		app.Error(w, err)
-		return
-	}
+	tx := app.DB.MustBegin()
 	defer tx.Commit()
 
 	query, args, err := buildListPartsQuery(r)
@@ -143,19 +116,11 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	parts := []Part{}
-	err = app.DB.Select(&parts, query, args...)
+	partViews := []PartView{}
+	err = app.DB.Select(&partViews, query, args...)
 	if err != nil {
 		app.Error(w, err)
 		return
-	}
-	viewParts := make([]*viewPart, len(parts))
-	for n, part := range parts {
-		viewParts[n], err = loadViewPart(&part, tx)
-		if err != nil {
-			app.Error(w, err)
-			return
-		}
 	}
 
 	categories := []Category{}
@@ -166,7 +131,7 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	app.renderTemplate(w, r, map[string]interface{}{
-		"Parts":      viewParts,
+		"Parts":      partViews,
 		"Categories": categories,
 	}, "ListParts", "Layout")
 }
@@ -209,25 +174,17 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	id, err := strconv.Atoi(path.Base(r.URL.Path))
-	if err != nil {
-		app.NotFoundHandler(w, r)
-		return
-	}
+	var err error
 
-	part := new(Part)
-	err = app.DB.Get(part, `SELECT * FROM 'part' WHERE "id" = ?`, id)
+	id := path.Base(r.URL.Path)
+
+	partView := new(PartView)
+	err = app.DB.Get(partView, `SELECT * FROM 'part_view' WHERE "id" = ?`, id)
 	if err != nil {
 		app.Error(w, err)
 		return
-	} else if part == nil {
+	} else if partView.Id == 0 {
 		app.NotFoundHandler(w, r)
-		return
-	}
-
-	latestAmount, err := part.LatestAmount(app.DB)
-	if err != nil {
-		app.Error(w, err)
 		return
 	}
 
@@ -245,27 +202,19 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	category, err := part.Category(app.DB)
-	if err != nil {
-		app.Error(w, err)
-		return
-	}
-
 	partAmounts := []PartAmount{}
 	err = app.DB.Select(&partAmounts, `SELECT * FROM 'part_amount'
-	WHERE "part_id" = ? ORDER BY "timestamp" DESC LIMIT 30`, part.Id)
+	WHERE "part_id" = ? ORDER BY "timestamp" DESC LIMIT 30`, partView.Id)
 	if err != nil {
 		app.Error(w, err)
 		return
 	}
 
 	app.renderTemplate(w, r, map[string]interface{}{
-		"Obj":          part,
-		"Categories":   categories,
-		"Category":     category,
-		"Places":       places,
-		"AmountGraph":  buildPartAmountGraph(partAmounts),
-		"LatestAmount": latestAmount,
+		"Part":        partView,
+		"Categories":  categories,
+		"Places":      places,
+		"AmountGraph": buildPartAmountGraph(partAmounts),
 	}, "EditPart", "Layout")
 }
 

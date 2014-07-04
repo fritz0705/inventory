@@ -4,46 +4,16 @@ import (
 	"net/http"
 )
 
-func (app *Application) newestParts() ([]*Part, error) {
-	rows, err := app.DB.Query(`SELECT * FROM 'part' ORDER BY "created_at" DESC LIMIT 5`)
-	if err != nil {
-		return nil, err
-	}
-
-	parts := make([]*Part, 0)
-	for rows.Next() {
-		part := new(Part)
-		err := part.Load(rows)
-		if err != nil {
-			return nil, err
-		}
-		parts = append(parts, part)
-	}
-
-	return parts, nil
+func (app *Application) newestParts() ([]Part, error) {
+	var parts []Part
+	err := app.DB.Select(&parts, `SELECT * FROM 'part' ORDER BY "created_at" DESC`)
+	return parts, err
 }
 
-func (app *Application) outOfStockParts() ([]*viewPart, error) {
-	rows, err := app.DB.Query(`SELECT 'part'.* FROM 'part_amount' JOIN
-	'part' ON 'part'.'id' = 'part_amount'.'part_id' GROUP BY "part_id" HAVING
-	"amount" = 0 ORDER BY "timestamp" DESC LIMIT 5`)
-
-	if err != nil {
-		return nil, err
-	}
-
-	viewParts := make([]*viewPart, 0)
-	for rows.Next() {
-		part := new(Part)
-		err := part.Load(rows)
-		if err != nil {
-			return nil, err
-		}
-		viewPart, err := loadViewPart(part, app.DB)
-		viewParts = append(viewParts, viewPart)
-	}
-
-	return viewParts, nil
+func (app *Application) outOfStockParts() ([]PartView, error) {
+	var partViews []PartView
+	err := app.DB.Select(&partViews, `SELECT * FROM 'part_view' WHERE "amount" = 0`)
+	return partViews, err
 }
 
 func (app *Application) DashboardHandler(w http.ResponseWriter, r *http.Request) {
