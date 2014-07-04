@@ -1,6 +1,7 @@
 package inventory
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"path"
@@ -180,11 +181,12 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 
 	partView := new(PartView)
 	err = app.DB.Get(partView, `SELECT * FROM 'part_view' WHERE "id" = ?`, id)
-	if err != nil {
-		app.Error(w, err)
-		return
-	} else if partView.Id == 0 {
+	switch err {
+	case sql.ErrNoRows:
 		app.NotFoundHandler(w, r)
+		return
+	default:
+		app.Error(w, err)
 		return
 	}
 
@@ -246,11 +248,12 @@ func (app *Application) CreatePartAmountHandler(w http.ResponseWriter, r *http.R
 
 	part := new(Part)
 	err = app.DB.Get(part, `SELECT * FROM 'part' WHERE "id" = ?`, partId)
-	if err != nil {
-		app.Error(w, err)
-		return
-	} else if part == nil {
+	switch err {
+	case sql.ErrNoRows:
 		app.NotFoundHandler(w, r)
+		return
+	default:
+		app.Error(w, err)
 		return
 	}
 
@@ -286,11 +289,12 @@ func (app *Application) UpdatePartHandler(w http.ResponseWriter, r *http.Request
 
 	part := new(Part)
 	err = app.DB.Get(part, `SELECT * FROM 'part' WHERE "id" = ?`, id)
-	if err != nil {
-		app.Error(w, err)
-		return
-	} else if part == nil {
+	switch err {
+	case sql.ErrNoRows:
 		app.NotFoundHandler(w, r)
+		return
+	default:
+		app.Error(w, err)
 		return
 	}
 
