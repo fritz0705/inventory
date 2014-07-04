@@ -11,6 +11,6 @@ func (app *Application) NotFoundHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *Application) Error(w http.ResponseWriter, err error) {
-	log.Fatal(err)
+	log.Print(err)
 	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
