@@ -91,6 +91,24 @@ func buildListPartsQuery(r *http.Request) (query string, args []interface{}, err
 		}
 	}
 
+	if amount := r.Form.Get("amount"); amount != "" {
+		if strings.ContainsRune(amount, '-') {
+			// Range query
+			rng, err := splitSiRange(amount)
+			if err == nil {
+				query += ` AND "amount" BETWEEN ? AND ?`
+				args = append(args, rng[0].Value(), rng[1].Value())
+			}
+		} else {
+			// Value query
+			value, err := si.Parse(amount)
+			if err == nil {
+				query += ` AND "amount" = ?`
+				args = append(args, value.Value())
+			}
+		}
+	}
+
 	query += ` ORDER BY "id" LIMIT ` + strconv.Itoa(PartsPerPage)
 	if r.Form["page"] != nil {
 		page, _ := strconv.Atoi(r.Form.Get("page"))
