@@ -9,13 +9,14 @@ import (
 	"time"
 
 	_ "code.google.com/p/go-sqlite/go1/sqlite3"
-	"github.com/jmoiron/sqlx"
 	"github.com/fritz0705/inventory"
+	"github.com/jmoiron/sqlx"
 )
 
 type Config struct {
-	Database string
-	AssetsPath string
+	Database      string
+	TemplatesPath string
+	AssetsPath    string
 }
 
 func handlerFactory(configFile string) (http.Handler, error) {

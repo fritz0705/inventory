@@ -1,6 +1,7 @@
 package inventory
 
 import (
+	"crypto/rand"
 	"html/template"
 	"net/http"
 
@@ -13,30 +14,47 @@ type Application struct {
 	DB        *sqlx.DB
 	Sessions  sessions.Store
 
-	SessionName string
-	AssetsPath  string
+	// Configuration options
+	SessionName   string
+	TemplatesPath string
+	AssetsPath    string
 
 	*http.ServeMux
+
+	initialized bool
 }
 
 func NewApplication() *Application {
 	app := &Application{
-		SessionName: "SESSION",
-		ServeMux:    http.NewServeMux(),
-		AssetsPath:  "assets/",
+		SessionName:   "SESSION",
+		ServeMux:      http.NewServeMux(),
+		AssetsPath:    "assets/",
+		TemplatesPath: "templates/",
 	}
 
-	app.SetUpRoutes()
-
-	app.Templates = template.New("")
-	app.Templates.Funcs(templateFuncs)
-	template.Must(app.Templates.ParseGlob("templates/*.html"))
-	app.Sessions = sessions.NewCookieStore([]byte("secret"))
+	app.setUpRoutes()
 
 	return app
 }
 
-func (app *Application) SetUpRoutes() {
+func (app *Application) Init() {
+	app.initialized = true
+
+	app.Templates = template.New("")
+	app.Templates.Funcs(templateFuncs)
+	template.Must(app.Templates.ParseGlob(app.TemplatesPath + "/*.html"))
+
+	if app.Sessions == nil {
+		sessionKey := make([]byte, 16)
+		_, err := rand.Read(sessionKey)
+		if err != nil {
+			panic(err)
+		}
+		sessions.NewCookieStore(sessionKey)
+	}
+}
+
+func (app *Application) setUpRoutes() {
 	app.HandleFunc("/index", app.IndexHandler)
 	app.HandleFunc("/dashboard", app.requiresUser(http.HandlerFunc(app.DashboardHandler)))
 
@@ -114,5 +132,8 @@ func (h *Application) IndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if !h.initialized {
+		h.Init()
+	}
 	h.ServeMux.ServeHTTP(w, r)
 }
