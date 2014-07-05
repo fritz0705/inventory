@@ -185,6 +185,7 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 	case sql.ErrNoRows:
 		app.NotFoundHandler(w, r)
 		return
+	case nil:
 	default:
 		app.Error(w, err)
 		return
@@ -252,6 +253,7 @@ func (app *Application) CreatePartAmountHandler(w http.ResponseWriter, r *http.R
 	case sql.ErrNoRows:
 		app.NotFoundHandler(w, r)
 		return
+	case nil:
 	default:
 		app.Error(w, err)
 		return
@@ -293,6 +295,7 @@ func (app *Application) UpdatePartHandler(w http.ResponseWriter, r *http.Request
 	case sql.ErrNoRows:
 		app.NotFoundHandler(w, r)
 		return
+	case nil:
 	default:
 		app.Error(w, err)
 		return

@@ -42,6 +42,12 @@ func handlerFactory(configFile string) (http.Handler, error) {
 	handler := inventory.NewApplication()
 	handler.DB, err = sqlx.Open("sqlite3", config.Database)
 	handler.DB.Exec("PRAGMA foreign_keys = on")
+	if config.TemplatesPath != "" {
+		handler.TemplatesPath = config.TemplatesPath
+	}
+	if config.AssetsPath != "" {
+		handler.AssetsPath = config.AssetsPath
+	}
 
 	return handler, err
 }
