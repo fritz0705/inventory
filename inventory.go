@@ -50,7 +50,7 @@ func (app *Application) Init() {
 		if err != nil {
 			panic(err)
 		}
-		sessions.NewCookieStore(sessionKey)
+		app.Sessions = sessions.NewCookieStore(sessionKey)
 	}
 }
 

@@ -78,6 +78,7 @@ func (app *Application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 		err := r.ParseForm()
 		if err != nil {
 			app.Error(w, err)
+			return
 		}
 
 		if r.PostForm["name"] == nil || r.PostForm["email"] == nil ||
@@ -113,5 +114,36 @@ func (app *Application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+func (app *Application) UpdateSettingsHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	http.Redirect(w, r, "/settings", http.StatusFound)
+}
+
 func (app *Application) SettingsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		app.UpdateSettingsHandler(w, r)
+		return
+	}
+
+	session, err := app.Sessions.Get(r, app.SessionName)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	userId := session.Values["userId"].(int64)
+
+	user := new(User)
+	err = app.DB.Get(user, `SELECT * FROM 'user' WHERE "id" = ?`, userId)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	app.renderTemplate(w, r, user, "Settings", "Layout")
 }
