@@ -23,7 +23,7 @@ func NewApplication() *Application {
 	app := &Application{
 		SessionName: "SESSION",
 		ServeMux:    http.NewServeMux(),
-		AssetsPath:  "bower_components",
+		AssetsPath:  "assets/",
 	}
 
 	app.SetUpRoutes()
