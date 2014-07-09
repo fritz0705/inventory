@@ -126,8 +126,6 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 		app.CreatePartHandler(w, r)
 		return
 	}
-	tx := app.DB.MustBegin()
-	defer tx.Commit()
 
 	query, args, err := buildListPartsQuery(r)
 	if err != nil {
@@ -149,9 +147,18 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	currentPage, _ := strconv.Atoi(r.FormValue("page"))
+	if currentPage <= 0 {
+		currentPage = 1
+	}
+
 	app.renderTemplate(w, r, map[string]interface{}{
 		"Parts":      partViews,
 		"Categories": categories,
+		"CurrentPage": currentPage,
+		"NextPage": currentPage+1,
+		"PrevPage": currentPage-1,
+		"URL": r.URL,
 	}, "ListParts", "Layout")
 }
 
@@ -258,13 +265,6 @@ func (app *Application) CreatePartAmountHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	tx, err := app.DB.Begin()
-	if err != nil {
-		app.Error(w, err)
-		return
-	}
-	defer tx.Commit()
-
 	part := new(Part)
 	err = app.DB.Get(part, `SELECT * FROM 'part' WHERE "id" = ?`, partId)
 	switch err {
@@ -283,13 +283,11 @@ func (app *Application) CreatePartAmountHandler(w http.ResponseWriter, r *http.R
 		Timestamp: time.Now(),
 	}
 
-	err = partAmount.Save(tx)
+	err = partAmount.Save(app.DB)
 	if err != nil {
 		app.Error(w, err)
 		return
 	}
-
-	tx.Commit()
 
 	http.Redirect(w, r, fmt.Sprintf("/parts/edit/%d", part.Id), http.StatusSeeOther)
 }

@@ -54,6 +54,12 @@
 		</table>
 
 		<a class="btn btn-primary" href="/parts/new">New part</a>
+
+
+		<ul class="pager">
+			<li class="previous"><a href="?{{.Data.URL.RawQuery}}&page={{.Data.PrevPage}}">Previous</a></li>
+			<li class="next"><a href="?{{.Data.URL.RawQuery}}&page={{.Data.NextPage}}">Next</a></li>
+		</ul>
 	</div>
 	<div class="col-md-3">
 		<h2>Filters</h2>
