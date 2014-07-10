@@ -117,7 +117,7 @@ func (u *User) Save(db Execer) error {
 	// UPDATE
 	_, err := db.Exec(`UPDATE 'user' SET 'name' = ?, 'email' = ?, 'password_hash' = ?,
 	'password_salt' = ?, 'is_active' = ?, 'created_at' = ?, 'updated_at' = ? WHERE
-	'id' = ?`, u.Name, u.Email, u.PasswordHash, u.PasswordSalt, u.IsActive,
+	"id" = ?`, u.Name, u.Email, u.PasswordHash, u.PasswordSalt, u.IsActive,
 		u.CreatedAt, u.UpdatedAt, u.Id)
 
 	return err

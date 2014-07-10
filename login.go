@@ -121,6 +121,33 @@ func (app *Application) UpdateSettingsHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	session, err := app.Sessions.Get(r, app.SessionName)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	userId := session.Values["userId"].(int64)
+
+	user := new(User)
+	err = app.DB.Get(user, `SELECT * FROM 'user' WHERE "id" = ?`, userId)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	user.Name = r.PostFormValue("name")
+
+	if r.PostFormValue("password") != "" && r.PostFormValue("password") == r.PostFormValue("password_confirmation") {
+		user.SetPassword(r.PostFormValue("password"))
+	}
+
+	err = user.Save(app.DB)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
 	http.Redirect(w, r, "/settings", http.StatusFound)
 }
 
