@@ -21,6 +21,7 @@ type Config struct {
 	BasePath      string
 	TemplatesPath string
 	AssetsPath    string
+	SessionKey    []byte
 }
 
 func handlerFactory(configFile string, basePath string) (http.Handler, error) {
@@ -48,6 +49,10 @@ func handlerFactory(configFile string, basePath string) (http.Handler, error) {
 		if config.AssetsPath == "" {
 			config.AssetsPath = filepath.Join(config.AssetsPath, "assets")
 		}
+	}
+
+	if config.SessionKey != nil {
+		inventory.SessionKey = config.SessionKey
 	}
 
 	var err error
