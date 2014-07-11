@@ -72,7 +72,7 @@ func buildListPartsQuery(r *http.Request) (query string, args []interface{}, err
 			}
 		}
 
-		query += ` AND "id" IN (` + strings.Join(categoryList, ", ") + `)`
+		query += ` AND "category_id" IN (` + strings.Join(categoryList, ", ") + `)`
 	}
 
 	if value := r.Form.Get("value"); value != "" {
