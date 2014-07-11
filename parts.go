@@ -153,12 +153,12 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	app.renderTemplate(w, r, map[string]interface{}{
-		"Parts":      partViews,
-		"Categories": categories,
+		"Parts":       partViews,
+		"Categories":  categories,
 		"CurrentPage": currentPage,
-		"NextPage": currentPage+1,
-		"PrevPage": currentPage-1,
-		"URL": r.URL,
+		"NextPage":    currentPage + 1,
+		"PrevPage":    currentPage - 1,
+		"URL":         r.URL,
 	}, "ListParts", "Layout")
 }
 
