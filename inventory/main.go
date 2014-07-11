@@ -48,7 +48,7 @@ func handlerFactory(configFile string, basePath string) (http.Handler, error) {
 			config.TemplatesPath = filepath.Join(config.BasePath, "templates")
 		}
 		if config.AssetsPath == "" {
-			config.AssetsPath = filepath.Join(config.AssetsPath, "assets")
+			config.AssetsPath = filepath.Join(config.BasePath, "assets")
 		}
 	}
 
@@ -68,6 +68,8 @@ func handlerFactory(configFile string, basePath string) (http.Handler, error) {
 		handler.AssetsPath = config.AssetsPath
 	}
 
+	log.Print(handler)
+
 	return handler, err
 }
 
@@ -83,7 +85,7 @@ func main() {
 		flReadTimeout    = flag.Duration("read-timeout", 10*time.Second, "read timeout")
 		flWriteTimeout   = flag.Duration("write-timeout", 10*time.Second, "write timeout")
 		flMaxHeaderBytes = flag.Int("buffer", 1<<20, "maximum header bytes")
-		flBase = flag.String("base", "", "path to base directory")
+		flBase           = flag.String("base", "", "path to base directory")
 	)
 
 	flag.Parse()

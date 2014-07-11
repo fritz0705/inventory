@@ -28,18 +28,17 @@ type Application struct {
 func NewApplication() *Application {
 	app := &Application{
 		SessionName:   "SESSION",
-		ServeMux:      http.NewServeMux(),
 		AssetsPath:    "assets/",
 		TemplatesPath: "templates/",
 	}
-
-	app.setUpRoutes()
 
 	return app
 }
 
 func (app *Application) Init() {
 	app.initialized = true
+
+	app.setUpRoutes()
 
 	app.Templates = template.New("")
 	app.Templates.Funcs(templateFuncs)
@@ -51,6 +50,8 @@ func (app *Application) Init() {
 }
 
 func (app *Application) setUpRoutes() {
+	app.ServeMux = http.NewServeMux()
+
 	app.HandleFunc("/index", app.IndexHandler)
 	app.HandleFunc("/dashboard", app.requiresUser(http.HandlerFunc(app.DashboardHandler)))
 
