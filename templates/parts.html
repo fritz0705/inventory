@@ -10,16 +10,18 @@
 		<table class="table table-hover">
 			<thead>
 				<tr>
+					<th>#</th>
 					<th>Part</th>
 					<th>Value/Category</th>
-					<th>Amount</th>
+					<th>Stock</th>
 					<th>Place</th>
 					<th></th>
 				</tr>
 			</thead>
 			<tbody>
-				{{range .Data.Parts}}
+				{{range $index, $_ :=.Data.Parts}}
 				<tr class="{{if eq .Amount 0}}danger{{end}}">
+					<td>{{$index}}</td>
 					<td>{{.Name}}</td>
 					<td>
 						{{if .Value.Valid}}
@@ -44,8 +46,7 @@
 					<td>
 						<div class="btn-group pull-right">
 							<a class="btn btn-sm btn-primary" href="/parts/edit/{{.Id}}">Edit</a>
-							<a class="btn btn-sm btn-warning" href="/parts/empty/{{.Id}}">Out of stock</a>
-							<a class="btn btn-sm btn-danger" href="/parts/delete/{{.Id}}">Delete</a>
+							<a class="btn btn-sm btn-warning{{if eq .Amount 0}} disabled{{end}}" href="/parts/empty/{{.Id}}">Out of stock</a>
 						</div>
 					</td>
 				</tr>
@@ -53,15 +54,14 @@
 			</tbody>
 		</table>
 
-		<a class="btn btn-primary" href="/parts/new">New part</a>
-
-
 		<ul class="pager">
-			<li class="previous"><a href="?{{.Data.URL.RawQuery}}&page={{.Data.PrevPage}}">Previous</a></li>
-			<li class="next"><a href="?{{.Data.URL.RawQuery}}&page={{.Data.NextPage}}">Next</a></li>
+			<li class="previous {{if eq .Data.CurrentPage 0}}disabled{{end}}"><a href="?{{.Data.PrevPage}}">Previous</a></li>
+			<li class="next"><a href="?{{.Data.NextPage}}">Next</a></li>
 		</ul>
 	</div>
 	<div class="col-md-3">
+		<a class="btn btn-success" href="/parts/new">New part</a>
+
 		<h2>Filters</h2>
 
 		<form role="form" class="form" method="GET" action="/parts">
@@ -80,7 +80,7 @@
 				<input type="text" name="value" class="form-control" id="filterValue" placeholder="Value e.g. 1, 5k, 1k-20k" />
 			</div>
 			<div class="form-group">
-				<label for="filterAmount">Amount</label>
+				<label for="filterAmount">Stock</label>
 				<input type="text" name="amount" class="form-control" id="filterAmount" placeholder="Amount e.g. 1, 2, 5k" />
 			</div>
 			<button type="submit" class="btn btn-primary">Apply filter</button>
@@ -117,7 +117,7 @@
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="partAmount" class="col-sm-2 control-label">Amount</label>
+		<label for="partAmount" class="col-sm-2 control-label">Stock</label>
 		<div class="col-sm-10">
 			<input type="text" class="form-control" id="partAmount" placeholder="Amount" name="amount" value="" />
 		</div>
@@ -261,7 +261,7 @@
 	<div class="col-sm-6">
 		<form class="form" role="form" method="POST" action="/parts/record/{{.Id}}">
 			<div class="form-group">
-				<label for="recordAmount">Amount</label>
+				<label for="recordAmount">Stock</label>
 				<input type="text" class="form-control" id="record amount" placeholder="New amount" name="amount" />
 			</div>
 			<button type="submit" class="btn btn-default">Save new amount</button>

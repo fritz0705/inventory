@@ -3,6 +3,8 @@ package inventory
 import (
 	"database/sql"
 	"fmt"
+	"html/template"
+	"net/url"
 	"net/http"
 	"path"
 	"strconv"
@@ -109,7 +111,7 @@ func buildListPartsQuery(r *http.Request) (query string, args []interface{}, err
 		}
 	}
 
-	query += ` ORDER BY "id" LIMIT ` + strconv.Itoa(PartsPerPage)
+	query += ` ORDER BY "id" DESC LIMIT ` + strconv.Itoa(PartsPerPage)
 	if r.Form["page"] != nil {
 		page, _ := strconv.Atoi(r.Form.Get("page"))
 		if page != 0 {
@@ -119,6 +121,14 @@ func buildListPartsQuery(r *http.Request) (query string, args []interface{}, err
 	}
 
 	return
+}
+
+func pageQuerys(url *url.URL, cur int) (string, string) {
+	values := url.Query()
+	values.Set("page", strconv.Itoa(cur-1))
+	prev := values.Encode()
+	values.Set("page", strconv.Itoa(cur+1))
+	return prev, values.Encode()
 }
 
 func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request) {
@@ -148,16 +158,14 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	currentPage, _ := strconv.Atoi(r.FormValue("page"))
-	if currentPage <= 0 {
-		currentPage = 1
-	}
+	prevQuery, nextQuery := pageQuerys(r.URL, currentPage)
 
 	app.renderTemplate(w, r, map[string]interface{}{
 		"Parts":       partViews,
 		"Categories":  categories,
 		"CurrentPage": currentPage,
-		"NextPage":    currentPage + 1,
-		"PrevPage":    currentPage - 1,
+		"NextPage":    template.URL(nextQuery),
+		"PrevPage":    template.URL(prevQuery),
 		"URL":         r.URL,
 	}, "ListParts", "Layout")
 }
