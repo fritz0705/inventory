@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS 'part_amount' (
 );
 
 CREATE INDEX IF NOT EXISTS 'part_amount_idx_amount' ON 'part_amount' (
-	'part_amount'
+	'amount'
 );
 
 CREATE INDEX IF NOT EXISTS 'part_amount_idx_timestamp' ON 'part_amount' (
