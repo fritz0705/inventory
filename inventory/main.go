@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"flag"
 	"log"
+	"net"
 	"net/http"
+	"net/http/fcgi"
 	"os"
+	"path/filepath"
 	"time"
 
 	_ "code.google.com/p/go-sqlite/go1/sqlite3"
@@ -15,11 +18,12 @@ import (
 
 type Config struct {
 	Database      string
+	BasePath      string
 	TemplatesPath string
 	AssetsPath    string
 }
 
-func handlerFactory(configFile string) (http.Handler, error) {
+func handlerFactory(configFile string, basePath string) (http.Handler, error) {
 	config := &Config{
 		Database: "inventory.db",
 	}
@@ -34,6 +38,15 @@ func handlerFactory(configFile string) (http.Handler, error) {
 		err = decoder.Decode(config)
 		if err != nil {
 			return nil, err
+		}
+	}
+
+	if config.BasePath != "" {
+		if config.TemplatesPath == "" {
+			config.TemplatesPath = filepath.Join(config.BasePath, "templates")
+		}
+		if config.AssetsPath == "" {
+			config.AssetsPath = filepath.Join(config.AssetsPath, "assets")
 		}
 	}
 
@@ -55,6 +68,8 @@ func handlerFactory(configFile string) (http.Handler, error) {
 func main() {
 	var (
 		flListen         = flag.String("listen", "localhost:8901", "server listen address")
+		flMode           = flag.String("mode", "http", "server mode (http or fcgi)")
+		flProtocol       = flag.String("protocol", "tcp", "listener protocol, only valid for fcgi mode")
 		flConfig         = flag.String("config", "", "path to configuration file")
 		flSsl            = flag.Bool("ssl", false, "enable ssl, requires certificate and key files")
 		flCertFile       = flag.String("cert", "", "ssl certificate")
@@ -62,33 +77,49 @@ func main() {
 		flReadTimeout    = flag.Duration("read-timeout", 10*time.Second, "read timeout")
 		flWriteTimeout   = flag.Duration("write-timeout", 10*time.Second, "write timeout")
 		flMaxHeaderBytes = flag.Int("buffer", 1<<20, "maximum header bytes")
+		flBase = flag.String("base", "", "path to base directory")
 	)
 
 	flag.Parse()
 
-	handler, err := handlerFactory(*flConfig)
+	handler, err := handlerFactory(*flConfig, *flBase)
 	if err != nil {
 		log.Fatalf("An error occured while initializing the application: %s", err)
 	}
-	s := &http.Server{
-		Addr:           *flListen,
-		Handler:        handler,
-		ReadTimeout:    *flReadTimeout,
-		WriteTimeout:   *flWriteTimeout,
-		MaxHeaderBytes: *flMaxHeaderBytes,
-	}
 
-	if *flSsl {
-		if *flCertFile == "" || *flKeyFile == "" {
-			log.Fatalf("Requires SSL certificate and key files for SSL mode")
+	switch *flMode {
+	case "http":
+		s := &http.Server{
+			Addr:           *flListen,
+			Handler:        handler,
+			ReadTimeout:    *flReadTimeout,
+			WriteTimeout:   *flWriteTimeout,
+			MaxHeaderBytes: *flMaxHeaderBytes,
 		}
 
-		err = s.ListenAndServeTLS(*flCertFile, *flKeyFile)
-	} else {
-		err = s.ListenAndServe()
-	}
+		if *flSsl {
+			if *flCertFile == "" || *flKeyFile == "" {
+				log.Fatalf("Requires SSL certificate and key files for SSL mode")
+			}
 
-	if err != nil {
-		log.Fatal(err)
+			err = s.ListenAndServeTLS(*flCertFile, *flKeyFile)
+		} else {
+			err = s.ListenAndServe()
+		}
+
+		if err != nil {
+			log.Fatal(err)
+		}
+	case "fcgi":
+		listener, err := net.Listen(*flProtocol, *flListen)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = fcgi.Serve(listener, handler)
+		if err != nil {
+			log.Fatal(err)
+		}
+	default:
+		log.Fatalf("Invalid server mode: %v (Valid modes are 'http' and 'fcgi')", *flMode)
 	}
 }
