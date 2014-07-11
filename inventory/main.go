@@ -27,6 +27,7 @@ type Config struct {
 func handlerFactory(configFile string, basePath string) (http.Handler, error) {
 	config := &Config{
 		Database: "inventory.db",
+		BasePath: basePath,
 	}
 
 	if configFile != "" {
