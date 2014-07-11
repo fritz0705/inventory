@@ -42,12 +42,20 @@ CREATE INDEX IF NOT EXISTS 'part_idx_value' ON 'part' (
 	'value'
 );
 
+CREATE INDEX IF NOT EXISTS 'part_idx_category_id' ON 'part' ('category_id');
+CREATE INDEX IF NOT EXISTS 'part_idx_place_id' ON 'part' ('place_id');
+CREATE INDEX IF NOT EXISTS 'part_idx_owner_id' ON 'part' ('owner_id');
+
 CREATE TABLE IF NOT EXISTS 'part_amount' (
 	'id' INTEGER PRIMARY KEY,
 	'part_id' INTEGER NOT NULL,
 	'amount' INTEGER NOT NULL,
 	'timestamp' DATETIME,
 	FOREIGN KEY('part_id') REFERENCES 'part'('id') ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS 'part_amount_idx_amount' ON 'part_amount' (
+	'part_amount'
 );
 
 CREATE INDEX IF NOT EXISTS 'part_amount_idx_timestamp' ON 'part_amount' (
