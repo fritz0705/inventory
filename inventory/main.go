@@ -68,8 +68,6 @@ func handlerFactory(configFile string, basePath string) (http.Handler, error) {
 		handler.AssetsPath = config.AssetsPath
 	}
 
-	log.Print(handler)
-
 	return handler, err
 }
 
