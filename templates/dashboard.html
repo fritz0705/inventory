@@ -44,8 +44,8 @@
 				{{range .Data.OutOfStock}}
 				<tr>
 					<td>{{.Name}}</td>
-					<td>{{.Value.Float64|siCanon}}{{.Category.UnitSymbol|unnull}}</td>
-					<td>{{with .Place}}{{.Name}}{{else}}(none){{end}}</td>
+					<td>{{.Value.Float64|siCanon}}{{.UnitSymbol|unnull}}</td>
+					<td>{{.PlaceName}}</td>
 					<td>
 						<a class="btn btn-sm btn-success" href="/parts/edit/{{.Id}}">Record stock</a>
 					</td>
