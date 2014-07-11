@@ -1,13 +1,14 @@
 package inventory
 
 import (
-	"crypto/rand"
 	"html/template"
 	"net/http"
 
 	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
 )
+
+var SessionKey = []byte("inventory.bin")
 
 type Application struct {
 	Templates *template.Template
@@ -45,12 +46,7 @@ func (app *Application) Init() {
 	template.Must(app.Templates.ParseGlob(app.TemplatesPath + "/*.html"))
 
 	if app.Sessions == nil {
-		sessionKey := make([]byte, 16)
-		_, err := rand.Read(sessionKey)
-		if err != nil {
-			panic(err)
-		}
-		app.Sessions = sessions.NewCookieStore(sessionKey)
+		app.Sessions = sessions.NewCookieStore(SessionKey)
 	}
 }
 
