@@ -46,18 +46,13 @@ type (
 	}
 
 	PartView struct {
-		Id           int64           `db:"id"`
-		Name         string          `db:"name"`
-		Value        sql.NullFloat64 `db:"value"`
-		Description  sql.NullString  `db:"description"`
-		CategoryId   int64           `db:"category_id"`
-		CategoryName string          `db:"category_name"`
-		Unit         sql.NullString  `db:"unit"`
-		UnitSymbol   sql.NullString  `db:"unit_symbol"`
-		PlaceId      sql.NullInt64   `db:"place_id"`
-		PlaceName    sql.NullString  `db:"place_name"`
-		Amount       int64           `db:"amount"`
-		ImageKey     []byte          `db:"image_key"`
+		Part
+		CategoryName string         `db:"category_name"`
+		Unit         sql.NullString `db:"unit"`
+		UnitSymbol   sql.NullString `db:"unit_symbol"`
+		PlaceName    sql.NullString `db:"place_name"`
+		Amount       int64          `db:"amount"`
+		ImageKey     []byte         `db:"image_key"`
 	}
 
 	Category struct {
