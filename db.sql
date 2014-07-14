@@ -28,10 +28,12 @@ CREATE TABLE IF NOT EXISTS 'part' (
 	'category_id' INTEGER NOT NULL,
 	'place_id' INTEGER,
 	'owner_id' INTEGER,
+	'image_id' INTEGER,
 	'created_at' DATETIME,
 	FOREIGN KEY('category_id') REFERENCES 'category'('id'),
 	FOREIGN KEY('place_id') REFERENCES 'place'('id'),
-	FOREIGN KEY('owner_id') REFERENCES 'user'('id') ON DELETE CASCADE
+	FOREIGN KEY('owner_id') REFERENCES 'user'('id') ON DELETE CASCADE,
+	FOREIGN KEY('image_id') REFERENCES 'attachment'('id') ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS 'part_idx_name' ON 'part' (
