@@ -186,11 +186,11 @@
 				<div class="col-sm-10">
 					<div class="input-group">
 						<input autocomplete="off" type="text" class="form-control" id="partValue" placeholder="Value with optional SI prefix" name="value" value="{{.Part.Value|unnull}}" />
-						{{if .Part.UnitSymbol.Valid}}
 						<span class="input-group-addon">
+							{{if .Part.UnitSymbol.Valid}}
 							{{.Part.UnitSymbol.Value}}
+							{{end}}
 						</span>
-						{{end}}
 					</div>
 				</div>
 			</div>
