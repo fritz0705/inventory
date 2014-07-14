@@ -106,7 +106,7 @@
 	<div class="form-group">
 		<label for="partName" class="col-sm-2 control-label">Name</label>
 		<div class="col-sm-10">
-			<input type="text" class="form-control" id="partName" placeholder="Name, e.g. R10-1/4" name="name" value="{{.Obj.Name}}" />
+			<input required type="text" class="form-control" id="partName" placeholder="Name, e.g. R10-1/4" name="name" value="{{.Obj.Name}}" />
 		</div>
 	</div>
 	<div class="form-group">
@@ -141,7 +141,8 @@
 	<div class="form-group">
 		<label for="newPartFormCategory" class="col-sm-2 control-label">Category</label>
 		<div class="col-sm-10">
-			<select class="form-control" name="category">
+			<select required class="form-control" name="category">
+				<option value="">Please select category</option>
 				{{range .Categories}}
 				<option value="{{.Id}}">{{.Name}}{{with .Unit.Value}} ({{.}}){{end}}</option>
 				{{end}}
@@ -172,7 +173,7 @@
 			<div class="form-group">
 				<label for="partName" class="col-sm-2 control-label">Name</label>
 				<div class="col-sm-10">
-					<input type="text" class="form-control" id="partName" placeholder="Name, e.g. R10-1/4" name="name" value="{{.Part.Name}}" />
+					<input required type="text" class="form-control" id="partName" placeholder="Name, e.g. R10-1/4" name="name" value="{{.Part.Name}}" />
 				</div>
 			</div>
 			<div class="form-group">
@@ -241,7 +242,7 @@
 				<form class="form form-inline" role="form" method="POST" enctype="multipart/form-data" action="/parts/upload/new/{{.Part.Id}}">
 					<div class="form-group">
 						<label for="uploadFile" class="sr-only control-label">File</label>
-						<input type="file" name="file" class="form-control" id="uploadFile" />
+						<input required type="file" name="file" class="form-control" id="uploadFile" />
 					</div>
 					<div class="form-group">
 						<button type="submit" class="btn btn-primary">Upload</button>
@@ -280,7 +281,7 @@
 				<form class="form form-inline" role="form" method="POST" action="/parts/record/{{.Part.Id}}">
 					<div class="row">
 						<div class="input-group">
-							<input type="text" class="form-control" name="amount" placeholder="New stock" />
+							<input required type="text" class="form-control" name="amount" placeholder="New stock" />
 							<span class="input-group-btn">
 								<button class="btn btn-primary" type="submit">Record</button>
 							</span>
