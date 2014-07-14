@@ -4,10 +4,10 @@ import (
 	"net/http"
 )
 
-func (app *Application) newestParts() ([]Part, error) {
-	var parts []Part
-	err := app.DB.Select(&parts, `SELECT * FROM 'part' ORDER BY "created_at" DESC`)
-	return parts, err
+func (app *Application) newestParts() ([]PartView, error) {
+	var partViews []PartView
+	err := app.DB.Select(&partViews, `SELECT * FROM 'part_view' ORDER BY "created_at" DESC`)
+	return partViews, err
 }
 
 func (app *Application) outOfStockParts() ([]PartView, error) {

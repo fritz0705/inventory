@@ -23,8 +23,8 @@
 					{{range .Data.Parts}}
 					<tr>
 						<td>{{.Name}}</td>
-						<td>{{.Value.Float64|siCanon}}</td>
-						<td></td>
+						<td>{{.Value.Float64|siCanon}}{{.UnitSymbol.Value}}</td>
+						<td>{{.Amount}}</td>
 						<td><a href="/parts/edit/{{.Id}}" class="btn btn-primary btn-sm">Edit</a></td>
 					</tr>
 					{{end}}
@@ -33,7 +33,7 @@
 		</div>
 	</div>
 	<div class="col-md-6">
-		<div class="panel panel-default">
+		<div class="panel panel-danger">
 			<div class="panel-heading">
 				<h2 class="panel-title">Latest Out-of-stock</h2>
 			</div>
@@ -51,7 +51,7 @@
 					<tr>
 						<td>{{.Name}}</td>
 						<td>{{.Value.Float64|siCanon}}{{.UnitSymbol|unnull}}</td>
-						<td>{{.PlaceName.Value}}</td>
+						<td>{{with .PlaceName.Value}}{{.}}{{else}}(unknown){{end}}</td>
 						<td>
 							<a class="btn btn-sm btn-success" href="/parts/edit/{{.Id}}">Record stock</a>
 						</td>
