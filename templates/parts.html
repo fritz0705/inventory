@@ -46,13 +46,18 @@
 					<td>
 						<div class="btn-group pull-right">
 							<a class="btn btn-sm btn-primary" href="/parts/edit/{{.Id}}">Edit</a>
-							<a class="btn btn-sm btn-warning{{if eq .Amount 0}} disabled{{end}}" href="/parts/empty/{{.Id}}">Out of stock</a>
+							<button class="btn btn-sm btn-warning{{if eq .Amount 0}} disabled{{end}}" type="submit"
+								form="actionForm" formaction="/parts/empty/{{.Id}}">Out of stock</button>
+							<!--<button class="btn btn-sm btn-danger" type="submit"
+								form="actionForm" formaction="/parts/delete/{{.Id}}">Delete</button>-->
 						</div>
 					</td>
 				</tr>
 				{{end}}
 			</tbody>
 		</table>
+
+		<form method="POST" id="actionForm"></form>
 
 		<ul class="pager">
 			<li class="previous {{if eq .Data.CurrentPage 0}}disabled{{end}}"><a href="?{{.Data.PrevPage}}">Previous</a></li>
@@ -216,58 +221,75 @@
 				</div>
 			</div>
 		</form>
-		<h2>Attachments</h2>
-		<table class="table">
-			<thead>
-				<tr>
-					<th>File name</th>
-					<th>Type</th>
-					<th>Actions</th>
-				</tr>
-			</thead>
-			<tbody>
-				{{range .Attachments}}
-				<tr>
-					<td><a href="/attachments/{{.Key|hex}}">{{.Name}}</a></td>
-					<td>{{.Type}}</td>
-					<td></td>
-				</tr>
-				{{end}}
-			</tbody>
-		</table>
-		<h2>Upload file</h2>
-		<form class="form-horizontal" role="form" method="POST" enctype="multipart/form-data" action="/parts/upload/new/{{.Part.Id}}">
-			<div class="form-group">
-				<label for="uploadFile" class="col-sm-2 control-label">File</label>
-				<div class="col-sm-10">
-					<input type="file" name="file" class="form-control" id="uploadFile" />
-				</div>
-			</div>
-			<div class="form-group">
-				<div class="col-sm-offset-2 col-sm-10">
-					<button type="submit" class="btn btn-primary">Upload</button>
-				</div>
-			</div>
-		</form>
 	</div>
 	<div class="col-md-4">
+		{{if .Part.ImageKey}}
 		<a href="/attachments/{{.Part.ImageKey|hex}}">
 			<img src="/attachments/{{.Part.ImageKey|hex}}" class="img-thumbnail img-responsive" />
 		</a>
-		<p><strong>Current stock</strong> {{.Part.Amount}}</p>
-		<form class="form" role="form" method="POST" action="/parts/record/{{.Part.Id}}">
-			<div class="row">
-				<div class="input-group">
-					<input type="text" class="form-control" name="amount" placeholder="New stock" />
-					<span class="input-group-btn">
-						<button class="btn btn-primary" type="submit">Record</button>
-					</span>
-				</div>
+		{{end}}
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-md-6">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h3 class="panel-title">Attachments</h3>
 			</div>
-		</form>
-		<hr />
-		<div id="amountChart" style="height: 360px"></div>
-		<script type="application/javascript">
+			<div class="panel-body">
+				<form class="form form-inline" role="form" method="POST" enctype="multipart/form-data" action="/parts/upload/new/{{.Part.Id}}">
+					<div class="form-group">
+						<label for="uploadFile" class="sr-only control-label">File</label>
+						<input type="file" name="file" class="form-control" id="uploadFile" />
+					</div>
+					<div class="form-group">
+						<button type="submit" class="btn btn-primary">Upload</button>
+					</div>
+				</form>
+			</div>
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>File name</th>
+						<th>Type</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					{{range .Attachments}}
+					<tr>
+						<td><a href="/attachments/{{.Key|hex}}">{{.Name}}</a></td>
+						<td>{{.Type}}</td>
+						<td>
+							<button class="btn btn-sm btn-danger" type="submit" form="actionForm"
+								formaction="/parts/upload/delete/{{.Id}}">Delete</button>
+						</td>
+					</tr>
+					{{end}}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h3 class="panel-title">Stock</h3>
+			</div>
+			<div class="panel-body">
+				<form class="form form-inline" role="form" method="POST" action="/parts/record/{{.Part.Id}}">
+					<div class="row">
+						<div class="input-group">
+							<input type="text" class="form-control" name="amount" placeholder="New stock" />
+							<span class="input-group-btn">
+								<button class="btn btn-primary" type="submit">Record</button>
+							</span>
+						</div>
+					</div>
+				</form>
+				<hr />
+				<div id="amountChart" style="height: 360px"></div>
+				<script type="application/javascript">
 (function(){
  var data = [ {{.AmountGraph}} ];
  var options = {
@@ -278,9 +300,13 @@
  };
  $.plot($("#amountChart"), data, options);
 })();
-		</script>
+				</script>
+			</div>
+		</div>
 	</div>
 </div>
+
+<form id="actionForm" method="POST"></form>
 {{end}}
 {{end}}
 

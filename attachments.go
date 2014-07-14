@@ -69,6 +69,35 @@ func (app *Application) AttachmentsHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+func (app *Application) PartUploadDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		app.NotFoundHandler(w, r)
+		return
+	}
+
+	tx := app.DB.MustBegin()
+	defer tx.Rollback()
+
+	id := path.Base(r.URL.Path)
+	attachment := new(Attachment)
+	err := tx.Get(attachment, `SELECT * FROM 'attachment' WHERE "id" = ?`, id)
+	if err != nil {
+		app.Error(w, err)
+		app.NotFoundHandler(w, r)
+		return
+	}
+
+	_, err = tx.Exec(`DELETE FROM 'attachment' WHERE "id" = ?`, id)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	tx.Commit()
+
+	http.Redirect(w, r, fmt.Sprintf("/parts/edit/%v", id), http.StatusSeeOther)
+}
+
 func (app *Application) PartUploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		app.NotFoundHandler(w, r)
@@ -122,7 +151,7 @@ func (app *Application) PartUploadHandler(w http.ResponseWriter, r *http.Request
 
 	if !part.ImageId.Valid {
 		print("Fehler!")
-		part.ImageId = sql.NullInt64{ attachment.Id, true }
+		part.ImageId = sql.NullInt64{attachment.Id, true}
 		err = part.Save(tx)
 		if err != nil {
 			app.Error(w, err)

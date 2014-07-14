@@ -72,6 +72,7 @@ func (app *Application) setUpRoutes() {
 	app.HandleFunc("/parts/record/", app.CreatePartAmountHandler)
 	app.HandleFunc("/parts/delete/", app.DeletePartHandler)
 	app.HandleFunc("/parts/upload/new/", app.PartUploadHandler)
+	app.HandleFunc("/parts/upload/delete/", app.PartUploadDeleteHandler)
 
 	app.HandleFunc("/categories", app.ListCategoriesHandler)
 	app.HandleFunc("/categories/new", app.NewCategoryHandler)
