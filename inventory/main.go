@@ -17,12 +17,12 @@ import (
 )
 
 type Config struct {
-	Database      string
-	BasePath      string
-	TemplatesPath string
-	AssetsPath    string
+	Database        string
+	BasePath        string
+	TemplatesPath   string
+	AssetsPath      string
 	AttachmentsPath string
-	SessionKey    []byte
+	SessionKey      []byte
 }
 
 func handlerFactory(configFile string, basePath string) (http.Handler, error) {

@@ -46,29 +46,29 @@ func TestParse(t *testing.T) {
 
 func TestString(t *testing.T) {
 	type testCase struct {
-		Data Number
+		Data   Number
 		Result string
 	}
 
 	testCases := []testCase{
-		testCase{ Number{ 1, Yotta }, "1Y" },
-		testCase{ Number{ 1, Zetta }, "1Z" },
-		testCase{ Number{ 1, Exa }, "1 E" },
-		testCase{ Number{ 1, Peta }, "1P" },
-		testCase{ Number{ 1, Tera }, "1T" },
-		testCase{ Number{ 1, Giga }, "1G" },
-		testCase{ Number{ 1, Mega }, "1M" },
-		testCase{ Number{ 1, Kilo }, "1k" },
-		testCase{ Number{ 1, Hecto }, "1h" },
-		testCase{ Number{ 1, Deca }, "1da" },
-		testCase{ Number{ 1, None }, "1" },
-		testCase{ Number{ 1, Deci }, "1d" },
-		testCase{ Number{ 1, Centi }, "1c" },
-		testCase{ Number{ 1, Milli }, "1m" },
-		testCase{ Number{ 1, Micro }, "1μ" },
-		testCase{ Number{ 1, Nano }, "1n" },
-		testCase{ Number{ 1, Pico }, "1 p" },
-		testCase{ Number{ 1, Femto }, "1f" },
+		testCase{Number{1, Yotta}, "1Y"},
+		testCase{Number{1, Zetta}, "1Z"},
+		testCase{Number{1, Exa}, "1 E"},
+		testCase{Number{1, Peta}, "1P"},
+		testCase{Number{1, Tera}, "1T"},
+		testCase{Number{1, Giga}, "1G"},
+		testCase{Number{1, Mega}, "1M"},
+		testCase{Number{1, Kilo}, "1k"},
+		testCase{Number{1, Hecto}, "1h"},
+		testCase{Number{1, Deca}, "1da"},
+		testCase{Number{1, None}, "1"},
+		testCase{Number{1, Deci}, "1d"},
+		testCase{Number{1, Centi}, "1c"},
+		testCase{Number{1, Milli}, "1m"},
+		testCase{Number{1, Micro}, "1μ"},
+		testCase{Number{1, Nano}, "1n"},
+		testCase{Number{1, Pico}, "1 p"},
+		testCase{Number{1, Femto}, "1f"},
 	}
 
 	for _, testCase := range testCases {
