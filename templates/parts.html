@@ -278,17 +278,20 @@
 				<h3 class="panel-title">Stock</h3>
 			</div>
 			<div class="panel-body">
-				<form class="form form-inline" role="form" method="POST" action="/parts/record/{{.Part.Id}}">
-					<div class="row">
-						<div class="input-group">
-							<input required type="text" class="form-control" name="amount" placeholder="New stock" />
-							<span class="input-group-btn">
-								<button class="btn btn-primary" type="submit">Record</button>
-							</span>
-						</div>
-					</div>
-				</form>
-				<hr />
+				<dl class="dl-horizontal">
+					<dt>Stock</dt>
+					<dd>
+						<form class="form form-inline" role="form" method="POST" action="/parts/record/{{.Part.Id}}">
+							<div class="form-group">
+								<label for="stockAmount" class="sr-only control-label">New stock</label>
+								<input required type="text" class="form-control" name="amount" id="stockAmount" placeholder="New stock" value="{{.Part.Amount}}" />
+							</div>
+							<div class="form-group">
+								<button type="submit" class="btn btn-primary">Update</button>
+							</div>
+						</form>
+					</dd>
+				</dl>
 				<div id="amountChart" style="height: 360px"></div>
 				<script type="application/javascript">
 (function(){
