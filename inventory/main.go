@@ -21,6 +21,7 @@ type Config struct {
 	BasePath      string
 	TemplatesPath string
 	AssetsPath    string
+	AttachmentsPath string
 	SessionKey    []byte
 }
 
@@ -50,6 +51,9 @@ func handlerFactory(configFile string, basePath string) (http.Handler, error) {
 		if config.AssetsPath == "" {
 			config.AssetsPath = filepath.Join(config.BasePath, "assets")
 		}
+		if config.AttachmentsPath == "" {
+			config.AttachmentsPath = filepath.Join(config.BasePath, "attachments")
+		}
 	}
 
 	if config.SessionKey != nil {
@@ -67,6 +71,11 @@ func handlerFactory(configFile string, basePath string) (http.Handler, error) {
 	if config.AssetsPath != "" {
 		handler.AssetsPath = config.AssetsPath
 	}
+	if config.AttachmentsPath != "" {
+		handler.AttachmentStore = &inventory.FileAttachmentStore{config.AttachmentsPath}
+	}
+
+	handler.Init()
 
 	return handler, err
 }
