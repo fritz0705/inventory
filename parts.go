@@ -137,6 +137,9 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	tx := app.DB.MustBegin()
+	defer tx.Rollback()
+
 	query, args, err := buildListPartsQuery(r)
 	if err != nil {
 		app.Error(w, err)
@@ -144,14 +147,14 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	partViews := []PartView{}
-	err = app.DB.Select(&partViews, query, args...)
+	err = tx.Select(&partViews, query, args...)
 	if err != nil {
 		app.Error(w, err)
 		return
 	}
 
 	categories := []Category{}
-	err = app.DB.Select(&categories, `SELECT * FROM 'category'`)
+	err = tx.Select(&categories, `SELECT * FROM 'category'`)
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -159,6 +162,8 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 
 	currentPage, _ := strconv.Atoi(r.FormValue("page"))
 	prevQuery, nextQuery := pageQuerys(r.URL, currentPage)
+
+	tx.Commit()
 
 	app.renderTemplate(w, r, map[string]interface{}{
 		"Parts":       partViews,
@@ -208,12 +213,15 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	tx := app.DB.MustBegin()
+	defer tx.Rollback()
+
 	var err error
 
 	id := path.Base(r.URL.Path)
 
 	partView := new(PartView)
-	err = app.DB.Get(partView, `SELECT * FROM 'part_view' WHERE "id" = ?`, id)
+	err = tx.Get(partView, `SELECT * FROM 'part_view' WHERE "id" = ?`, id)
 	switch err {
 	case sql.ErrNoRows:
 		app.NotFoundHandler(w, r)
@@ -225,21 +233,21 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	places := []Place{}
-	err = app.DB.Select(&places, `SELECT * FROM 'place'`)
+	err = tx.Select(&places, `SELECT * FROM 'place'`)
 	if err != nil {
 		app.Error(w, err)
 		return
 	}
 
 	categories := []Category{}
-	err = app.DB.Select(&categories, `SELECT * FROM 'category'`)
+	err = tx.Select(&categories, `SELECT * FROM 'category'`)
 	if err != nil {
 		app.Error(w, err)
 		return
 	}
 
 	partAmounts := []PartAmount{}
-	err = app.DB.Select(&partAmounts, `SELECT * FROM 'part_amount'
+	err = tx.Select(&partAmounts, `SELECT * FROM 'part_amount'
 	WHERE "part_id" = ? ORDER BY "timestamp" DESC LIMIT 30`, partView.Id)
 	if err != nil {
 		app.Error(w, err)
@@ -270,6 +278,9 @@ func (app *Application) CreatePartAmountHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	tx := app.DB.MustBegin()
+	defer tx.Rollback()
+
 	partId, err := strconv.Atoi(path.Base(r.URL.Path))
 	if err != nil {
 		app.NotFoundHandler(w, r)
@@ -283,7 +294,7 @@ func (app *Application) CreatePartAmountHandler(w http.ResponseWriter, r *http.R
 	}
 
 	part := new(Part)
-	err = app.DB.Get(part, `SELECT * FROM 'part' WHERE "id" = ?`, partId)
+	err = tx.Get(part, `SELECT * FROM 'part' WHERE "id" = ?`, partId)
 	switch err {
 	case sql.ErrNoRows:
 		app.NotFoundHandler(w, r)
@@ -300,11 +311,13 @@ func (app *Application) CreatePartAmountHandler(w http.ResponseWriter, r *http.R
 		Timestamp: time.Now(),
 	}
 
-	err = partAmount.Save(app.DB)
+	err = partAmount.Save(tx)
 	if err != nil {
 		app.Error(w, err)
 		return
 	}
+
+	tx.Commit()
 
 	http.Redirect(w, r, fmt.Sprintf("/parts/edit/%d", part.Id), http.StatusSeeOther)
 }
@@ -322,8 +335,11 @@ func (app *Application) UpdatePartHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	tx := app.DB.MustBegin()
+	defer tx.Rollback()
+
 	part := new(Part)
-	err = app.DB.Get(part, `SELECT * FROM 'part' WHERE "id" = ?`, id)
+	err = tx.Get(part, `SELECT * FROM 'part' WHERE "id" = ?`, id)
 	switch err {
 	case sql.ErrNoRows:
 		app.NotFoundHandler(w, r)
@@ -340,11 +356,13 @@ func (app *Application) UpdatePartHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = part.Save(app.DB)
+	err = part.Save(tx)
 	if err != nil {
 		app.Error(w, err)
 		return
 	}
+
+	tx.Commit()
 
 	http.Redirect(w, r, fmt.Sprintf("/parts/edit/%d", id), http.StatusFound)
 }
