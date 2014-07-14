@@ -76,6 +76,15 @@ type (
 		Id   int64  `db:"id"`
 		Name string `db:"name"`
 	}
+
+	Attachment struct {
+		Id        int64     `db:"id"`
+		Key       []byte    `db:"key"`
+		Name      string    `db:"name"`
+		Type      string    `db:"name"`
+		CreatedAt time.Time `db:"created_at"`
+		PartId    int64     `db:"part_id"`
+	}
 )
 
 func (u *User) SetPassword(password string) {
@@ -151,6 +160,27 @@ func (u *User) Load(rows *sql.Rows) error {
 	}
 
 	return rows.Scan(dest...)
+}
+
+func (a *Attachment) Save(db Execer) error {
+	if a.Id == 0 {
+		// CREATE
+		res, err := db.Exec(`INSERT INTO 'attachment' ('key', 'name', 'type', 'created_at',
+		'part_id') VALUES (?, ?, ?, ?, ?)`, a.Key, a.Name, a.Type,
+			a.CreatedAt, a.PartId)
+		if err != nil {
+			return err
+		}
+		a.Id, err = res.LastInsertId()
+		return err
+	}
+
+	// UPDATE
+	_, err := db.Exec(`UPDATE 'attachment' SET 'key' = ?, 'name' = ?, 'type' = ?,
+	'created_at' = ?, 'part_id' = ? WHERE "id" = ?`, a.Key, a.Name, a.Type,
+		a.CreatedAt, a.PartId)
+
+	return err
 }
 
 func LoadParts(rows *sql.Rows) ([]*Part, error) {

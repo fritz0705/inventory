@@ -85,3 +85,17 @@ CREATE VIEW IF NOT EXISTS 'part_view' AS SELECT 'part'."id" AS 'id',
 		"part_id" AS 'part_amount_part_id' FROM 'part_amount'
 		GROUP BY "part_amount_part_id"
 		ORDER BY "timestamp" DESC) ON "part_amount_part_id" = 'part'.'id';
+
+CREATE TABLE IF NOT EXISTS 'attachment' (
+	'id' INTEGER PRIMARY KEY,
+	'key' BLOB NOT NULL,
+	'name' TEXT NOT NULL,
+	'type' TEXT NOT NULL,
+	'created_at' DATETIME,
+	'part_id' INTEGER NOT NULL,
+	FOREIGN KEY('part_id') REFERENCES 'part'('id') ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS 'attachment_idx_part_id' ON 'attachment' (
+	'part_id'
+);

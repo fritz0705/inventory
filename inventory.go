@@ -11,9 +11,10 @@ import (
 var SessionKey = []byte("inventory.bin")
 
 type Application struct {
-	Templates *template.Template
-	DB        *sqlx.DB
-	Sessions  sessions.Store
+	Templates       *template.Template
+	DB              *sqlx.DB
+	Sessions        sessions.Store
+	AttachmentStore AttachmentStore
 
 	// Configuration options
 	SessionName   string
@@ -27,9 +28,10 @@ type Application struct {
 
 func NewApplication() *Application {
 	app := &Application{
-		SessionName:   "SESSION",
-		AssetsPath:    "assets/",
-		TemplatesPath: "templates/",
+		SessionName:     "SESSION",
+		AssetsPath:      "assets/",
+		TemplatesPath:   "templates/",
+		AttachmentStore: &FileAttachmentStore{"attachments"},
 	}
 
 	return app
@@ -69,6 +71,7 @@ func (app *Application) setUpRoutes() {
 	app.HandleFunc("/parts/empty/", app.EmptyPartHandler)
 	app.HandleFunc("/parts/record/", app.CreatePartAmountHandler)
 	app.HandleFunc("/parts/delete/", app.DeletePartHandler)
+	app.HandleFunc("/parts/upload/new/", app.PartUploadHandler)
 
 	app.HandleFunc("/categories", app.ListCategoriesHandler)
 	app.HandleFunc("/categories/new", app.NewCategoryHandler)
@@ -78,6 +81,8 @@ func (app *Application) setUpRoutes() {
 	app.HandleFunc("/places", app.ListPlacesHandler)
 	app.HandleFunc("/places/new", app.NewPlaceHandler)
 	app.HandleFunc("/places/delete/", app.DeletePlaceHandler)
+
+	app.HandleFunc("/attachments/", app.AttachmentsHandler)
 
 	app.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(app.AssetsPath))))
 
