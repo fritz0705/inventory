@@ -16,15 +16,17 @@
 	<tbody>
 		{{range .Data}}
 		<tr>
-			<th>{{.Name}}</th>
-			<th>
-				<a href="/places/delete/{{.Id}}" class="btn btn-danger">Delete</a>
-			</th>
+			<td>{{.Name}}</td>
+			<td>
+				<button class="btn btn-danger btn-sm" type="submit" form="actionForm"
+					formaction="/places/delete/{{.Id}}">Delete</a>
+			</td>
 		</tr>
 		{{end}}
 	</tbody>
 </table>
 
+<form method="POST" id="actionForm"></form>
 {{end}}
 
 {{define "NewPlace"}}

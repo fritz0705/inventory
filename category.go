@@ -109,6 +109,11 @@ func (app *Application) UpdateCategoryHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (app *Application) DeleteCategoryHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		app.NotFoundHandler(w, r)
+		return
+	}
+
 	_, idStr := path.Split(r.URL.Path)
 	id, err := strconv.Atoi(idStr)
 	if err != nil {

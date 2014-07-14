@@ -446,6 +446,11 @@ func (app *Application) EmptyPartHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (app *Application) DeletePartHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		app.NotFoundHandler(w, r)
+		return
+	}
+
 	_, idStr := path.Split(r.URL.Path)
 	id, err := strconv.Atoi(idStr)
 	if err != nil {

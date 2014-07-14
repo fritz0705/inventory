@@ -46,6 +46,11 @@ func (app *Application) NewPlaceHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *Application) DeletePlaceHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		app.NotFoundHandler(w, r)
+		return
+	}
+
 	_, idStr := path.Split(r.URL.Path)
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
