@@ -3,6 +3,7 @@ package inventory
 import (
 	"bytes"
 	"database/sql"
+	"encoding/hex"
 	"html/template"
 	"io"
 	"net/http"
@@ -80,5 +81,8 @@ var templateFuncs = template.FuncMap{
 		}
 
 		return nil
+	},
+	"hex": func(v []byte) string {
+		return hex.EncodeToString(v)
 	},
 }

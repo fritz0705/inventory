@@ -246,11 +246,20 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	attachments := []Attachment{}
+	err = app.DB.Select(&attachments, `SELECT * FROM 'attachment'
+	WHERE "part_id" = ? ORDER BY "created_at" ASC`, partView.Id)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
 	app.renderTemplate(w, r, map[string]interface{}{
 		"Part":        partView,
 		"Categories":  categories,
 		"Places":      places,
 		"AmountGraph": buildPartAmountGraph(partAmounts),
+		"Attachments": attachments,
 	}, "EditPart", "Layout")
 }
 

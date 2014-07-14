@@ -47,6 +47,7 @@ CREATE INDEX IF NOT EXISTS 'part_idx_value' ON 'part' (
 CREATE INDEX IF NOT EXISTS 'part_idx_category_id' ON 'part' ('category_id');
 CREATE INDEX IF NOT EXISTS 'part_idx_place_id' ON 'part' ('place_id');
 CREATE INDEX IF NOT EXISTS 'part_idx_owner_id' ON 'part' ('owner_id');
+CREATE INDEX IF NOT EXISTS 'part_idx_image_id' ON 'part' ('image_id');
 
 CREATE TABLE IF NOT EXISTS 'part_amount' (
 	'id' INTEGER PRIMARY KEY,
@@ -79,10 +80,12 @@ CREATE VIEW IF NOT EXISTS 'part_view' AS SELECT 'part'."id" AS 'id',
 	'category'."unit_symbol" AS 'unit_symbol',
 	'part'."place_id" AS 'place_id',
 	'place'."name" AS 'place_name',
-	"part_amount" AS 'amount'
+	"part_amount" AS 'amount',
+	'attachment'.'key' AS 'image_key'
 	FROM 'part'
 	LEFT JOIN 'category' ON 'category'.'id' = 'part'.'category_id'
 	LEFT JOIN 'place' ON 'place'.'id' = 'part'.'place_id'
+	LEFT JOIN 'attachment' ON 'attachment'.'id' = 'part'.'image_id'
 	LEFT JOIN (SELECT "amount" AS 'part_amount',
 		"part_id" AS 'part_amount_part_id' FROM 'part_amount'
 		GROUP BY "part_amount_part_id"

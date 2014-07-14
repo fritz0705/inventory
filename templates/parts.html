@@ -216,27 +216,31 @@
 				</div>
 			</div>
 		</form>
+		<h2>Attachments</h2>
+		<table class="table">
+			<thead>
+				<tr>
+					<th>File name</th>
+					<th>Type</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				{{range .Attachments}}
+				<tr>
+					<td><a href="/attachments/{{.Key|hex}}">{{.Name}}</a></td>
+					<td>{{.Type}}</td>
+					<td></td>
+				</tr>
+				{{end}}
+			</tbody>
+		</table>
 		<h2>Upload file</h2>
 		<form class="form-horizontal" role="form" method="POST" enctype="multipart/form-data" action="/parts/upload/new/{{.Part.Id}}">
-			<div class="form-group">
-				<label for="uploadName" class="col-sm-2 control-label">Name</label>
-				<div class="col-sm-10">
-					<input type="text" name="name" class="form-control" id="uploadName" />
-				</div>
-			</div>
 			<div class="form-group">
 				<label for="uploadFile" class="col-sm-2 control-label">File</label>
 				<div class="col-sm-10">
 					<input type="file" name="file" class="form-control" id="uploadFile" />
-				</div>
-			</div>
-			<div class="form-group">
-				<label for="uploadType" class="col-sm-2 control-label">Type</label>
-				<div class="col-sm-10">
-					<select class="form-control" name="type">
-						<option value="image">Image</option>
-						<option value="datasheet">Datasheet</option>
-					</select>
 				</div>
 			</div>
 			<div class="form-group">
@@ -247,6 +251,9 @@
 		</form>
 	</div>
 	<div class="col-md-4">
+		<a href="/attachments/{{.Part.ImageKey|hex}}">
+			<img src="/attachments/{{.Part.ImageKey|hex}}" class="img-thumbnail img-responsive" />
+		</a>
 		<p><strong>Current stock</strong> {{.Part.Amount}}</p>
 		<form class="form" role="form" method="POST" action="/parts/record/{{.Part.Id}}">
 			<div class="row">

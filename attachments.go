@@ -2,6 +2,7 @@ package inventory
 
 import (
 	"crypto/rand"
+	"database/sql"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -74,9 +75,19 @@ func (app *Application) PartUploadHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	tx := app.DB.MustBegin()
+	defer tx.Rollback()
+
 	id, _ := strconv.Atoi(path.Base(r.URL.Path))
 
-	file, _, err := r.FormFile("file")
+	part := new(Part)
+	err := tx.Get(part, `SELECT * FROM 'part' WHERE "id" = ?`, id)
+	if err != nil {
+		app.NotFoundHandler(w, r)
+		return
+	}
+
+	file, header, err := r.FormFile("file")
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -98,16 +109,28 @@ func (app *Application) PartUploadHandler(w http.ResponseWriter, r *http.Request
 
 	attachment := Attachment{
 		Key:    key,
-		Name:   r.FormValue("name"),
-		Type:   r.FormValue("type"),
+		Name:   header.Filename,
+		Type:   header.Header.Get("Content-Type"),
 		PartId: int64(id),
 	}
 
-	err = attachment.Save(app.DB)
+	err = attachment.Save(tx)
 	if err != nil {
 		app.Error(w, err)
 		return
 	}
+
+	if !part.ImageId.Valid {
+		print("Fehler!")
+		part.ImageId = sql.NullInt64{ attachment.Id, true }
+		err = part.Save(tx)
+		if err != nil {
+			app.Error(w, err)
+			return
+		}
+	}
+
+	tx.Commit()
 
 	http.Redirect(w, r, fmt.Sprintf("/parts/edit/%d", id), http.StatusSeeOther)
 }

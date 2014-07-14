@@ -41,6 +41,7 @@ type (
 		CategoryId  int64           `db:"category_id"`
 		PlaceId     sql.NullInt64   `db:"place_id"`
 		OwnerId     sql.NullInt64   `db:"owner_id"`
+		ImageId     sql.NullInt64   `db:"image_id"`
 		CreatedAt   time.Time       `db:"created_at"`
 	}
 
@@ -56,6 +57,7 @@ type (
 		PlaceId      sql.NullInt64   `db:"place_id"`
 		PlaceName    sql.NullString  `db:"place_name"`
 		Amount       int64           `db:"amount"`
+		ImageKey     []byte          `db:"image_key"`
 	}
 
 	Category struct {
@@ -81,7 +83,7 @@ type (
 		Id        int64     `db:"id"`
 		Key       []byte    `db:"key"`
 		Name      string    `db:"name"`
-		Type      string    `db:"name"`
+		Type      string    `db:"type"`
 		CreatedAt time.Time `db:"created_at"`
 		PartId    int64     `db:"part_id"`
 	}
@@ -201,8 +203,10 @@ func (p *Part) Save(db Execer) error {
 	if p.Id == 0 {
 		// CREATE
 		res, err := db.Exec(`INSERT INTO 'part' ('name', 'description', 'value',
-		'category_id', 'owner_id', 'place_id', 'created_at') VALUES (?, ?, ?, ?, ?, ?, ?)`,
-			p.Name, p.Description, p.Value, p.CategoryId, p.OwnerId, p.PlaceId, p.CreatedAt)
+		'category_id', 'owner_id', 'place_id', 'created_at', 'image_id')
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			p.Name, p.Description, p.Value, p.CategoryId, p.OwnerId, p.PlaceId,
+			p.CreatedAt, p.ImageId)
 		if err != nil {
 			return err
 		}
@@ -212,9 +216,10 @@ func (p *Part) Save(db Execer) error {
 
 	// UPDATE
 	_, err := db.Exec(`UPDATE 'part' SET 'name' = ?, 'description' = ?,
-	'value' = ?, 'category_id' = ?, 'owner_id' = ?, 'place_id' = ?, 'created_at' = ?
+	'value' = ?, 'category_id' = ?, 'owner_id' = ?, 'place_id' = ?,
+	'created_at' = ?, 'image_id' = ?
 	WHERE "id" = ?`, p.Name, p.Description, p.Value, p.CategoryId, p.OwnerId,
-		p.PlaceId, p.CreatedAt, p.Id)
+		p.PlaceId, p.CreatedAt, p.ImageId, p.Id)
 
 	return err
 }
