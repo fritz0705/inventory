@@ -5,8 +5,10 @@ import (
 	"crypto/subtle"
 	"database/sql"
 	"io"
+	"mime"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"code.google.com/p/go.crypto/scrypt"
@@ -83,6 +85,14 @@ type (
 		PartId    int64     `db:"part_id"`
 	}
 )
+
+func (a *Attachment) MediaType() string {
+	mediaType, _, err := mime.ParseMediaType(a.Type)
+	if err != nil {
+		return "application"
+	}
+	return strings.Split(mediaType, "/")[0]
+}
 
 func (u *User) SetPassword(password string) {
 	var err error

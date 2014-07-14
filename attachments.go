@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"os"
 	"path"
@@ -62,6 +63,15 @@ func (app *Application) AttachmentsHandler(w http.ResponseWriter, r *http.Reques
 	}
 	defer object.Close()
 
+	attachment := new(Attachment)
+	err = app.DB.Get(attachment, `SELECT * FROM 'attachment' WHERE "key" = ?`, key)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", attachment.Type)
+
 	_, err = io.Copy(w, object)
 	if err != nil {
 		app.Error(w, err)
@@ -88,6 +98,12 @@ func (app *Application) PartUploadDeleteHandler(w http.ResponseWriter, r *http.R
 	}
 
 	_, err = tx.Exec(`DELETE FROM 'attachment' WHERE "id" = ?`, id)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	err = app.AttachmentStore.Delete(attachment.Key)
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -143,14 +159,24 @@ func (app *Application) PartUploadHandler(w http.ResponseWriter, r *http.Request
 		PartId: int64(id),
 	}
 
+	if attachment.Name == "" {
+		attachment.Name = "file"
+	}
+
+	if attachment.Type == "" {
+		attachment.Type = mime.TypeByExtension(path.Ext(header.Filename))
+		if attachment.Type == "" {
+			attachment.Type = "application/octet-stream"
+		}
+	}
+
 	err = attachment.Save(tx)
 	if err != nil {
 		app.Error(w, err)
 		return
 	}
 
-	if !part.ImageId.Valid {
-		print("Fehler!")
+	if !part.ImageId.Valid && attachment.MediaType() == "image" {
 		part.ImageId = sql.NullInt64{attachment.Id, true}
 		err = part.Save(tx)
 		if err != nil {

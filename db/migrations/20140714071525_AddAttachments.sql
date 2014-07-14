@@ -15,6 +15,8 @@ CREATE INDEX IF NOT EXISTS 'attachment_idx_part_id' ON 'attachment' (
 	'part_id'
 );
 
+CREATE INDEX IF NOT EXISTS 'attachment_idx_key' ON 'attachment'('key');
+
 ALTER TABLE 'part' ADD COLUMN 'image_id' INTEGER;
 
 CREATE INDEX IF NOT EXISTS 'part_idx_image_id' ON 'part' ('image_id');
