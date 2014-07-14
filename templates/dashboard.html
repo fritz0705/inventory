@@ -6,52 +6,59 @@
 
 <div class="row">
 	<div class="col-md-6">
-		<h2>Newest parts</h2>
-
-		<table class="table table-hover">
-			<thead>
-				<tr>
-					<th>Part</th>
-					<th>Value</th>
-					<th>Amount</th>
-					<th></th>
-				</tr>
-			</thead>
-			<tbody>
-				{{range .Data.Parts}}
-				<tr>
-					<td>{{.Name}}</td>
-					<td>{{.Value.Float64|siCanon}}</td>
-					<td><a href="/parts/edit/{{.Id}}" class="btn btn-primary btn-sm">Edit</a></td>
-				</tr>
-				{{end}}
-			</tbody>
-		</table>
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h2 class="panel-title">Newest Parts</h2>
+			</div>
+			<table class="table table-hover">
+				<thead>
+					<tr>
+						<th>Part</th>
+						<th>Value</th>
+						<th>Amount</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					{{range .Data.Parts}}
+					<tr>
+						<td>{{.Name}}</td>
+						<td>{{.Value.Float64|siCanon}}</td>
+						<td></td>
+						<td><a href="/parts/edit/{{.Id}}" class="btn btn-primary btn-sm">Edit</a></td>
+					</tr>
+					{{end}}
+				</tbody>
+			</table>
+		</div>
 	</div>
 	<div class="col-md-6">
-		<h2>Latest Out-of-stock</h2>
-
-		<table class="table table-hover">
-			<thead>
-				<tr>
-					<th>Part</th>
-					<th>Value</th>
-					<th>Place</th>
-					<th></th>
-				</tr>
-			</thead>
-			<tbody>
-				{{range .Data.OutOfStock}}
-				<tr>
-					<td>{{.Name}}</td>
-					<td>{{.Value.Float64|siCanon}}{{.UnitSymbol|unnull}}</td>
-					<td>{{.PlaceName}}</td>
-					<td>
-						<a class="btn btn-sm btn-success" href="/parts/edit/{{.Id}}">Record stock</a>
-					</td>
-				{{end}}
-			</tbody>
-		</table>
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h2 class="panel-title">Latest Out-of-stock</h2>
+			</div>
+			<table class="table table-hover">
+				<thead>
+					<tr>
+						<th>Part</th>
+						<th>Value</th>
+						<th>Place</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					{{range .Data.OutOfStock}}
+					<tr>
+						<td>{{.Name}}</td>
+						<td>{{.Value.Float64|siCanon}}{{.UnitSymbol|unnull}}</td>
+						<td>{{.PlaceName.Value}}</td>
+						<td>
+							<a class="btn btn-sm btn-success" href="/parts/edit/{{.Id}}">Record stock</a>
+						</td>
+					{{end}}
+				</tbody>
+			</table>
+		</div>
 	</div>
 </div>
 {{end}}

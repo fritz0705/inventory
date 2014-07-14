@@ -55,7 +55,7 @@ func (app *Application) setUpRoutes() {
 	app.ServeMux = http.NewServeMux()
 
 	app.HandleFunc("/index", app.IndexHandler)
-	app.HandleFunc("/dashboard", app.requiresUser(http.HandlerFunc(app.DashboardHandler)))
+	app.HandleFunc("/dashboard", app.DashboardHandler)
 
 	app.HandleFunc("/login", app.requiresSessions(http.HandlerFunc(app.LoginHandler)))
 	app.HandleFunc("/logout", app.requiresSessions(http.HandlerFunc(app.LogoutHandler)))
@@ -127,7 +127,7 @@ func (h *Application) RootHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	http.Redirect(w, r, "/index", http.StatusFound)
+	http.Redirect(w, r, "/dashboard", http.StatusFound)
 }
 
 func (h *Application) IndexHandler(w http.ResponseWriter, r *http.Request) {
