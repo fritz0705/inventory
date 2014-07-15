@@ -12,7 +12,8 @@
 				<tr>
 					<th>#</th>
 					<th>Part</th>
-					<th>Value/Category</th>
+					<th>Value</th>
+					<th>Category</th>
 					<th>Stock</th>
 					<th>Place</th>
 					<th></th>
@@ -23,16 +24,8 @@
 				<tr class="{{if eq .Amount 0}}danger{{end}}">
 					<td>{{$index}}</td>
 					<td>{{.Name}}</td>
-					<td>
-						{{if .Value.Valid}}
-						{{.Value.Value|siCanon}}
-						{{end}}
-						{{if .Unit.Valid}}
-						{{.UnitSymbol.Value}}
-						{{else}}
-						{{.CategoryName}}
-						{{end}}
-					</td>
+					<td>{{.Value.Float64|siCanon}}{{.UnitSymbol.Value}}</td>
+					<td>{{.CategoryName}}</td>
 					<td>
 						{{.Amount}}
 					</td>

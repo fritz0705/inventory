@@ -95,6 +95,23 @@ var Prefixes = []Prefix{
 	Femto,
 }
 
+var CanonPrefixes = []Prefix{
+	Yotta,
+	Zetta,
+	Exa,
+	Peta,
+	Tera,
+	Giga,
+	Mega,
+	Kilo,
+	None,
+	Milli,
+	Micro,
+	Nano,
+	Pico,
+	Femto,
+}
+
 var PrefixMapping map[string]Prefix
 
 // A Number is a float64 combined with a Exponent, it is similar to a decimal
@@ -146,21 +163,14 @@ func (n Number) Value() float64 {
 
 // String returns a string representation of a Number
 func (n Number) String() string {
-	var space string
-	switch n.Exponent {
-	case Pico:
-		fallthrough
-	case Exa:
-		space = " "
-	}
-	return strconv.FormatFloat(n.Significand, 'f', -1, 64) + space + n.Exponent.String()
+	return strconv.FormatFloat(n.Significand, 'f', -1, 64) + " " + n.Exponent.String()
 }
 
 // Canon tries to find the best matching SI prefix for a Value and returns a
 // new Number object holding that
 func (n Number) Canon() Number {
 	val := n.Value()
-	for _, prefix := range Prefixes {
+	for _, prefix := range CanonPrefixes {
 		sig := val / math.Pow10(int(prefix))
 		if sig >= 1.0 && sig <= 1000 {
 			return Number{

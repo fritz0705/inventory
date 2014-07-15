@@ -2,21 +2,23 @@ package inventory
 
 import (
 	"net/http"
+
+	"github.com/jmoiron/sqlx"
 )
 
-func (app *Application) newestParts() ([]PartView, error) {
+func (app *Application) newestParts(tx *sqlx.Tx) ([]PartView, error) {
 	var partViews []PartView
-	err := app.DB.Select(&partViews, `SELECT * FROM 'part_view' ORDER BY "created_at" DESC`)
+	err := tx.Select(&partViews, `SELECT * FROM 'part_view' ORDER BY "created_at" DESC LIMIT 10`)
 	return partViews, err
 }
 
-func (app *Application) outOfStockParts() ([]PartView, error) {
+func (app *Application) outOfStockParts(tx *sqlx.Tx) ([]PartView, error) {
 	var partViews []PartView
-	err := app.DB.Select(&partViews, `SELECT * FROM 'part_view' WHERE "amount" = 0`)
+	err := tx.Select(&partViews, `SELECT * FROM 'part_view' WHERE "amount" = 0`)
 	return partViews, err
 }
 
-func (app *Application) statisticsPanel() (map[string]interface{}, error) {
+func (app *Application) statisticsPanel(tx *sqlx.Tx) (map[string]interface{}, error) {
 	var (
 		totalParts int64
 		totalStock int64
@@ -25,22 +27,22 @@ func (app *Application) statisticsPanel() (map[string]interface{}, error) {
 		totalCategories int64
 	)
 
-	row := app.DB.QueryRowx(`SELECT COUNT(*), SUM(amount) FROM 'part_view'`)
+	row := tx.QueryRowx(`SELECT COUNT(*), SUM(amount) FROM 'part_view'`)
 	if err := row.Scan(&totalParts, &totalStock); err != nil {
 		return nil, err
 	}
 
-	row = app.DB.QueryRowx(`SELECT COUNT(*) FROM 'part_view' WHERE "amount" = 0`)
+	row = tx.QueryRowx(`SELECT COUNT(*) FROM 'part_view' WHERE "amount" = 0`)
 	if err := row.Scan(&emptyParts); err != nil {
 		return nil, err
 	}
 
-	row = app.DB.QueryRowx(`SELECT COUNT(*) FROM 'place'`)
+	row = tx.QueryRowx(`SELECT COUNT(*) FROM 'place'`)
 	if err := row.Scan(&totalPlaces); err != nil {
 		return nil, err
 	}
 
-	row = app.DB.QueryRowx(`SELECT COUNT(*) FROM 'category'`)
+	row = tx.QueryRowx(`SELECT COUNT(*) FROM 'category'`)
 	if err := row.Scan(&totalCategories); err != nil {
 		return nil, err
 	}
@@ -55,19 +57,22 @@ func (app *Application) statisticsPanel() (map[string]interface{}, error) {
 }
 
 func (app *Application) DashboardHandler(w http.ResponseWriter, r *http.Request) {
-	parts, err := app.newestParts()
+	tx := app.DB.MustBegin()
+	defer tx.Rollback()
+
+	parts, err := app.newestParts(tx)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	outOfStock, err := app.outOfStockParts()
+	outOfStock, err := app.outOfStockParts(tx)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	statistics, err := app.statisticsPanel()
+	statistics, err := app.statisticsPanel(tx)
 	if err != nil {
 		app.Error(w, err)
 		return
