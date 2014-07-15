@@ -302,6 +302,15 @@ func (p *Part) LoadForm(form url.Values) error {
 				Int64: int64(val),
 				Valid: true,
 			}
+		case "image_id":
+			val, err := strconv.Atoi(value[0])
+			if err != nil {
+				return err
+			}
+			p.ImageId = sql.NullInt64{
+				Int64: int64(val),
+				Valid: val != 0,
+			}
 		}
 	}
 	return nil

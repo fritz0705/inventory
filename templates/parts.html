@@ -169,7 +169,7 @@
 
 <div class="row">
 	<div class="col-md-8">
-		<form class="form-horizontal" role="form" method="POST" action="/parts/edit/{{.Part.Id}}">
+		<form class="form-horizontal" role="form" method="POST" action="/parts/edit/{{.Part.Id}}" id="editPartForm">
 			<div class="form-group">
 				<label for="partName" class="col-sm-2 control-label">Name</label>
 				<div class="col-sm-10">
@@ -252,6 +252,7 @@
 			<table class="table table-striped">
 				<thead>
 					<tr>
+						<th>
 						<th>File name</th>
 						<th>Type</th>
 						<th>Actions</th>
@@ -260,6 +261,11 @@
 				<tbody>
 					{{range .Attachments}}
 					<tr>
+						<td>
+							{{if eq .MediaType "image"}}
+							<input type="radio" form="editPartForm" name="image_id" value="{{.Id}}" {{if eq .Id $.Data.Part.ImageId.Value}}checked{{end}}/>
+							{{end}}
+						</td>
 						<td><a href="/attachments/{{.Key|hex}}">{{.Name}}</a></td>
 						<td>{{.Type}}</td>
 						<td>
