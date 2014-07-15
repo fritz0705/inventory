@@ -111,6 +111,11 @@ func buildListPartsQuery(r *http.Request) (query string, args []interface{}, err
 		}
 	}
 
+	if name := r.Form.Get("name"); name != "" {
+		query += ` AND "name" GLOB ?`
+		args = append(args, name)
+	}
+
 	query += ` ORDER BY "id" DESC LIMIT ` + strconv.Itoa(PartsPerPage)
 	if r.Form["page"] != nil {
 		page, _ := strconv.Atoi(r.Form.Get("page"))
