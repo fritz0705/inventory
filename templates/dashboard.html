@@ -59,6 +59,31 @@
 				</tbody>
 			</table>
 		</div>
+		{{with .Data.Statistics}}
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h2 class="panel-title">Statistics</h2>
+			</div>
+			<div class="panel-body">
+				<dl class="dl-horizontal">
+					<dt>Total Parts</dt>
+					<dd>{{.TotalParts}}</dd>
+
+					<dt>Total Stock</dt>
+					<dd>{{.TotalStock}}</dd>
+
+					<dt>Empty Parts</dt>
+					<dd>{{.EmptyParts}}</dd>
+
+					<dt>Total Places</dt>
+					<dd>{{.TotalPlaces}}</dd>
+
+					<dt>Total Categories</dt>
+					<dd>{{.TotalCategories}}</dd>
+				</dl>
+			</div>
+		</div>
+		{{end}}
 	</div>
 </div>
 {{end}}
