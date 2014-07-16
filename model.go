@@ -478,7 +478,7 @@ func (p *Place) Save(db Execer) error {
 		return err
 	}
 
-	_, err := db.Exec(`UPDATE 'place' SET 'name' = ? WHERE 'id' = ?`, p.Name,
+	_, err := db.Exec(`UPDATE 'place' SET 'name' = ? WHERE "id" = ?`, p.Name,
 		p.Id)
 
 	return err

@@ -1,6 +1,7 @@
 package inventory
 
 import (
+	"database/sql"
 	"net/http"
 	"path"
 	"strconv"
@@ -43,6 +44,74 @@ func (app *Application) CreatePlaceHandler(w http.ResponseWriter, r *http.Reques
 
 func (app *Application) NewPlaceHandler(w http.ResponseWriter, r *http.Request) {
 	app.renderTemplate(w, r, nil, "NewPlace", "Layout")
+}
+
+func (app *Application) UpdatePlaceHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	tx := app.DB.MustBegin()
+	defer tx.Rollback()
+
+	id := path.Base(r.URL.Path)
+	if id == "" {
+		app.NotFoundHandler(w, r)
+		return
+	}
+
+	place := new(Place)
+	err = tx.Get(place, `SELECT * FROM 'place' WHERE "id" = ?`, id)
+	switch err {
+	case nil:
+	case sql.ErrNoRows:
+		app.NotFoundHandler(w, r)
+		return
+	default:
+		app.Error(w, err)
+		return
+	}
+
+	place.LoadForm(r.PostForm)
+
+	err = place.Save(tx)
+	if err != nil {
+		app.Error(w, err)
+	}
+
+	tx.Commit()
+
+	http.Redirect(w, r, "/places", http.StatusSeeOther)
+}
+
+func (app *Application) EditPlaceHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		app.UpdatePlaceHandler(w, r)
+		return
+	}
+
+	id := path.Base(r.URL.Path)
+	if id == "" {
+		app.NotFoundHandler(w, r)
+		return
+	}
+
+	place := new(Place)
+	err := app.DB.Get(place, `SELECT * FROM 'place' WHERE "id" = ?`, id)
+	switch err {
+	case sql.ErrNoRows:
+		app.NotFoundHandler(w, r)
+		return
+	case nil:
+	default:
+		app.Error(w, err)
+		return
+	}
+
+	app.renderTemplate(w, r, map[string]interface{}{
+		"Place": place,
+	}, "EditPlace", "Layout")
 }
 
 func (app *Application) DeletePlaceHandler(w http.ResponseWriter, r *http.Request) {

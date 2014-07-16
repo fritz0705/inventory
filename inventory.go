@@ -82,6 +82,7 @@ func (app *Application) setUpRoutes() {
 	app.HandleFunc("/places", app.ListPlacesHandler)
 	app.HandleFunc("/places/new", app.NewPlaceHandler)
 	app.HandleFunc("/places/delete/", app.DeletePlaceHandler)
+	app.HandleFunc("/places/edit/", app.EditPlaceHandler)
 
 	app.HandleFunc("/attachments/", app.AttachmentsHandler)
 

@@ -20,10 +20,10 @@ func (app *Application) outOfStockParts(tx *sqlx.Tx) ([]PartView, error) {
 
 func (app *Application) statisticsPanel(tx *sqlx.Tx) (map[string]interface{}, error) {
 	var (
-		totalParts int64
-		totalStock int64
-		emptyParts int64
-		totalPlaces int64
+		totalParts      int64
+		totalStock      int64
+		emptyParts      int64
+		totalPlaces     int64
 		totalCategories int64
 	)
 
@@ -48,10 +48,10 @@ func (app *Application) statisticsPanel(tx *sqlx.Tx) (map[string]interface{}, er
 	}
 
 	return map[string]interface{}{
-		"TotalParts": totalParts,
-		"TotalStock": totalStock,
-		"EmptyParts": emptyParts,
-		"TotalPlaces": totalPlaces,
+		"TotalParts":      totalParts,
+		"TotalStock":      totalStock,
+		"EmptyParts":      emptyParts,
+		"TotalPlaces":     totalPlaces,
 		"TotalCategories": totalCategories,
 	}, nil
 }
