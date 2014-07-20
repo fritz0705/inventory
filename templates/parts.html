@@ -79,22 +79,27 @@
 						<select class="form-control" id="filterCategory" multiple name="category">
 							{{with .Data.Categories}}
 							{{range .}}
-							<option value="{{.Id}}">{{.Name}}{{if .Unit.Valid}} ({{.Unit.String}}){{end}}</option>
+							<option value="{{.Id}}" {{if index $.Data.Filter.Categories .Id}}selected{{end}}>
+								{{.Name}}{{if .Unit.Valid}} ({{.Unit.String}}){{end}}
+							</option>
 							{{end}}
 							{{end}}
 						</select>
 					</div>
 					<div class="form-group">
 						<label for="filterValue">Value</label>
-						<input type="text" name="value" class="form-control" id="filterValue" placeholder="Value e.g. 1, 5k, 1k-20k" />
+						<input type="text" name="value" class="form-control" id="filterValue" placeholder="Value e.g. 1, 5k, 1k-20k"
+							value="{{with .Data.Filter.Value}}{{.}}{{end}}"/>
 					</div>
 					<div class="form-group">
 						<label for="filterName">Name</label>
-						<input type="text" name="name" class="form-control" id="filterName" placeholder="Glob-style pattern" />
+						<input type="text" name="name" class="form-control" id="filterName" placeholder="Glob-style pattern"
+							value="{{with .Data.Filter.Name}}{{.}}{{end}}"/>
 					</div>
 					<div class="form-group">
 						<label for="filterAmount">Stock</label>
-						<input type="text" name="amount" class="form-control" id="filterAmount" placeholder="Amount e.g. 1, 2, 5k" />
+						<input type="text" name="amount" class="form-control" id="filterAmount" placeholder="Amount e.g. 1, 2, 5k"
+							value="{{with .Data.Filter.Stock}}{{.}}{{end}}" />
 					</div>
 					<button type="submit" class="btn btn-primary">Apply filter</button>
 				</form>

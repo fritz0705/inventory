@@ -163,6 +163,9 @@ func (n Number) Value() float64 {
 
 // String returns a string representation of a Number
 func (n Number) String() string {
+	if n.Exponent == 0 {
+		return strconv.FormatFloat(n.Significand, 'f', -1, 64)
+	}
 	return strconv.FormatFloat(n.Significand, 'f', -1, 64) + " " + n.Exponent.String()
 }
 

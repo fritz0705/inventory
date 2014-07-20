@@ -23,36 +23,110 @@ func buildPartAmountGraph(amounts []PartAmount) (res [][2]int64) {
 	return res
 }
 
-func splitSiRange(r string) (res [2]si.Number, err error) {
-	parts := strings.SplitN(r, "-", 2)
-	if len(parts) != 2 {
-		panic("inventory: Invalid operation splitSiRange on non-range string")
-	}
-	left, right := parts[0], parts[1]
+type siRange struct {
+	Low si.Number
+	High si.Number
+}
 
-	leftVal, err := si.Parse(left)
-	if err != nil {
-		return
-	}
-	rightVal, err := si.Parse(right)
-	if err != nil {
-		return
+func parseSiRange(s string) (r *siRange, err error) {
+	r = new(siRange)
+	if strings.ContainsRune(s, '-') {
+		parts := strings.SplitN(s, "-", 2)
+		left, right := parts[0], parts[1]
+
+		r.Low, err = si.Parse(left)
+		if err != nil {
+			return
+		}
+
+		r.High, err = si.Parse(right)
+	} else {
+		r.High, err = si.Parse(s)
+		r.Low = r.High
 	}
 
-	res = [2]si.Number{leftVal, rightVal}
 	return
 }
 
-func buildListPartsQuery(r *http.Request) (query string, args []interface{}, err error) {
-	err = r.ParseForm()
-	if err != nil {
-		return
-	}
+func (s siRange) IsEmpty() bool {
+	return s.Low == s.High
+}
 
+func (s siRange) String() string {
+	if s.Low == s.High {
+		return s.Low.String()
+	}
+	return s.Low.String() + "-" + s.High.String()
+}
+
+type partsFilter struct {
+	Categories map[int64]bool
+	Places map[int64]bool
+	Value *siRange
+	Name string
+	Stock *siRange
+}
+
+func loadPartsFilter(form url.Values) (filter *partsFilter, err error) {
+	filter = &partsFilter{
+		Categories: make(map[int64]bool),
+		Places: make(map[int64]bool),
+	}
+	for key, value := range form {
+		value := value[0]
+		if value == "" {
+			continue
+		}
+		switch key {
+		case "value":
+			filter.Value, err = parseSiRange(value)
+		case "amount":
+			filter.Stock, err = parseSiRange(value)
+		case "name":
+			filter.Name = value
+		case "category":
+			category, _ := strconv.Atoi(value)
+			if category != 0 {
+				filter.Categories[int64(category)] = true
+			}
+		case "places":
+			place, _ := strconv.Atoi(value)
+			if place != 0 {
+				filter.Places[int64(place)] = true
+			}
+		}
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+func (f partsFilter) CategoriesList() []string {
+	res := make([]string, len(f.Categories))
+	n := 0
+	for id := range f.Categories {
+		res[n] = strconv.Itoa(int(id))
+		n++
+	}
+	return res
+}
+
+func (f partsFilter) PlacesList() []string {
+	res := make([]string, len(f.Places))
+	n := 0
+	for id := range f.Places {
+		res[n] = strconv.Itoa(int(id))
+		n++
+	}
+	return res
+}
+
+func buildListPartsQuery(filter *partsFilter, form url.Values) (query string, args []interface{}, err error) {
 	query += `SELECT * FROM 'part_view' WHERE (1=1)`
 
-	lastId, _ := strconv.Atoi(r.Form.Get("last_id"))
-	firstId, _ := strconv.Atoi(r.Form.Get("first_id"))
+	lastId, _ := strconv.Atoi(form.Get("last_id"))
+	firstId, _ := strconv.Atoi(form.Get("first_id"))
 
 	if lastId != 0 {
 		query += ` AND "id" > ?`
@@ -62,63 +136,42 @@ func buildListPartsQuery(r *http.Request) (query string, args []interface{}, err
 		args = append(args, firstId)
 	}
 
-	if r.Form["category"] != nil {
-		var categoryList []string
-
-		for _, category := range r.Form["category"] {
-			category, _ := strconv.Atoi(category)
-			if category != 0 {
-				categoryList = append(categoryList, strconv.Itoa(category))
-			}
-		}
-
-		query += ` AND "category_id" IN (` + strings.Join(categoryList, ", ") + `)`
+	if len(filter.Categories) != 0 {
+		query += ` AND "category_id" IN (` + strings.Join(filter.CategoriesList(), ", ") + `)`
 	}
 
-	if value := r.Form.Get("value"); value != "" {
-		if strings.ContainsRune(value, '-') {
-			// Range query
-			rng, err := splitSiRange(value)
-			if err == nil {
-				query += ` AND "value" BETWEEN ? AND ?`
-				args = append(args, rng[0].Value(), rng[1].Value())
-			}
+	if len(filter.Places) != 0 {
+		query += ` AND "place_id" IN (` + strings.Join(filter.PlacesList(), ", ") + `)`
+	}
+
+	if filter.Value != nil {
+		if filter.Value.IsEmpty() {
+			query += ` AND "value" = ?`
+			args = append(args, filter.Value.Low.Value())
 		} else {
-			// Value query
-			value, err := si.Parse(value)
-			if err == nil {
-				query += ` AND "value" = ?`
-				args = append(args, value.Value())
-			}
+			query += ` AND "value" BETWEEN ? AND ?`
+			args = append(args, filter.Value.Low.Value(), filter.Value.High.Value())
 		}
 	}
 
-	if amount := r.Form.Get("amount"); amount != "" {
-		if strings.ContainsRune(amount, '-') {
-			// Range query
-			rng, err := splitSiRange(amount)
-			if err == nil {
-				query += ` AND "amount" BETWEEN ? AND ?`
-				args = append(args, rng[0].Value(), rng[1].Value())
-			}
+	if filter.Stock != nil {
+		if filter.Stock .IsEmpty() {
+			query += ` AND "amount" = ?`
+			args = append(args, filter.Stock.Low.Value())
 		} else {
-			// Value query
-			value, err := si.Parse(amount)
-			if err == nil {
-				query += ` AND "amount" = ?`
-				args = append(args, value.Value())
-			}
+			query += ` AND "value" BETWEEN ? AND ?`
+			args = append(args, filter.Stock.Low.Value(), filter.Stock.High.Value())
 		}
 	}
 
-	if name := r.Form.Get("name"); name != "" {
+	if filter.Name != "" {
 		query += ` AND "name" GLOB ?`
-		args = append(args, name)
+		args = append(args, filter.Name)
 	}
 
 	query += ` ORDER BY "id" DESC LIMIT ` + strconv.Itoa(PartsPerPage)
-	if r.Form["page"] != nil {
-		page, _ := strconv.Atoi(r.Form.Get("page"))
+	if form["page"] != nil {
+		page, _ := strconv.Atoi(form.Get("page"))
 		if page != 0 {
 			query += ` OFFSET ?`
 			args = append(args, page*PartsPerPage)
@@ -142,10 +195,22 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	err := r.ParseForm()
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	filter, err := loadPartsFilter(r.Form)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
 	tx := app.DB.MustBegin()
 	defer tx.Rollback()
 
-	query, args, err := buildListPartsQuery(r)
+	query, args, err := buildListPartsQuery(filter, r.Form)
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -177,6 +242,7 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 		"NextPage":    template.URL(nextQuery),
 		"PrevPage":    template.URL(prevQuery),
 		"URL":         r.URL,
+		"Filter":      filter,
 	}, "ListParts", "Layout")
 }
 
