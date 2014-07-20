@@ -1,0 +1,41 @@
+{{define "Search"}}
+{{with .Data}}
+<ol class="breadcrumb">
+	<li><a href="/">Home</a></li>
+	<li class="active">Search</a></li>
+</ol>
+
+<table class="table table-hover">
+	<thead>
+		<tr>
+			<th>#</th>
+			<th>Part</th>
+			<th>Value</th>
+			<th>Category</th>
+			<th>Stock</th>
+			<th>Place</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		{{range $index, $_ := .Parts}}
+		<tr>
+			<td>{{$index}}</td>
+			<td>{{.Name}}</td>
+			<td>{{.Value.Float64|siCanon}}{{.UnitSymbol.Value}}</td>
+			<td>{{.CategoryName}}</td>
+			<td>{{.Amount}}</td>
+			<td>{{if .PlaceName.Valid}}
+				{{.PlaceName.Value}}
+				{{else}}
+				(none)
+				{{end}}</td>
+			<td>
+				<a class="btn btn-sm btn-primary" href="/parts/edit/{{.Id}}">Edit</a>
+			</td>
+		</tr>
+		{{end}}
+	</tbody>
+</table>
+{{end}}
+{{end}}
