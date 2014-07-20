@@ -204,9 +204,12 @@ func (app *Application) NewPartHandler(w http.ResponseWriter, r *http.Request) {
 
 func (app *Application) ShowPartHandler(w http.ResponseWriter, r *http.Request) {
 	_, idString := path.Split(r.URL.Path)
+	if idString == "" {
+		http.Redirect(w, r, "/parts", http.StatusSeeOther)
+		return
+	}
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		app.NotFoundHandler(w, r)
 		return
 	}
 	app.renderTemplate(w, r, id, "ShowPart", "Layout")
@@ -381,6 +384,11 @@ func (app *Application) CreatePartHandler(w http.ResponseWriter, r *http.Request
 
 	tx, err := app.DB.Begin()
 
+	next := r.PostForm.Get("next")
+	if next == "" {
+		next = "list"
+	}
+
 	// Create Part object
 	part := new(Part)
 	part.CreatedAt = time.Now()
@@ -414,7 +422,16 @@ func (app *Application) CreatePartHandler(w http.ResponseWriter, r *http.Request
 
 	tx.Commit()
 
-	http.Redirect(w, r, "/parts", http.StatusFound)
+	switch next {
+	default:
+		fallthrough
+	case "list":
+		http.Redirect(w, r, "/parts", http.StatusSeeOther)
+	case "new":
+		http.Redirect(w, r, "/parts/new", http.StatusSeeOther)
+	case "show":
+		http.Redirect(w, r, fmt.Sprintf("/parts/edit/%d", part.Id), http.StatusFound)
+	}
 }
 
 func (app *Application) EmptyPartHandler(w http.ResponseWriter, r *http.Request) {
