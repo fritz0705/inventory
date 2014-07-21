@@ -80,6 +80,12 @@ func (app *Application) SearchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(res) == 1 {
+		res := res[0]
+		http.Redirect(w, r, fmt.Sprintf("/parts/%d", res.Id), http.StatusFound)
+		return
+	}
+
 	app.renderTemplate(w, r, map[string]interface{}{
 		"Parts": res,
 	}, "Search", "Layout")
