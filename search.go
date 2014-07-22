@@ -3,6 +3,7 @@ package inventory
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/fritz0705/inventory/si"
 )
@@ -48,7 +49,7 @@ func loadSearchQuery(c chan searchItem) (*searchQuery, error) {
 		case searchItemUnit:
 			res.Unit = item.val[1 : len(item.val)-1]
 		case searchItemNumber:
-			res.Value, err = si.Parse(item.val)
+			res.Value, err = si.Parse(strings.Replace(item.val, "_", " ", -1))
 		case searchItemText:
 			res.Keywords = append(res.Keywords, item.val)
 		case searchItemStock:
