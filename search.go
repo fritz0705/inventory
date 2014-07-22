@@ -1,6 +1,7 @@
 package inventory
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/fritz0705/inventory/si"
