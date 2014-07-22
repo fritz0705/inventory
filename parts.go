@@ -269,16 +269,8 @@ func (app *Application) NewPartHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) ShowPartHandler(w http.ResponseWriter, r *http.Request) {
-	_, idString := path.Split(r.URL.Path)
-	if idString == "" {
-		http.Redirect(w, r, "/parts", http.StatusSeeOther)
-		return
-	}
-	id, err := strconv.Atoi(idString)
-	if err != nil {
-		return
-	}
-	app.renderTemplate(w, r, id, "ShowPart", "Layout")
+	id := path.Base(r.URL.Path)
+	http.Redirect(w, r, fmt.Sprintf("/parts/edit/%s", id), http.StatusSeeOther)
 }
 
 func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) {
