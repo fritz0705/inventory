@@ -25,6 +25,26 @@ func (app *Application) DistributorPartRedirect(w http.ResponseWriter, r *http.R
 	http.Redirect(w, r, distributorPartView.PartURL(), http.StatusMovedPermanently)
 }
 
+func (app *Application) DeleteDistributorPart(w http.ResponseWriter, r *http.Request) {
+	id := path.Base(r.URL.Path)
+
+	tx := app.DB.MustBegin()
+	defer tx.Rollback()
+
+	distributorPart := new(DistributorPart)
+	err := tx.Get(distributorPart, `SELECT * FROM 'distributor_part' WHERE "id" = ?`, id)
+	if app.SQLError(w, r, err) {
+		return
+	}
+
+	_, err = tx.Exec(`DELETE FROM 'distributor_part' WHERE "id" = ?`, id)
+	app.SQLError(w, r, err)
+
+	tx.Commit()
+
+	http.Redirect(w, r, fmt.Sprintf("/parts/edit/%d", distributorPart.PartId), http.StatusSeeOther)
+}
+
 func (app *Application) CreateDistributorPart(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -56,8 +76,6 @@ func (app *Application) CreateDistributorPart(w http.ResponseWriter, r *http.Req
 		app.Error(w, err)
 		return
 	}
-
-	fmt.Println(distributorPart)
 
 	err = distributorPart.Save(tx)
 	if err != nil {

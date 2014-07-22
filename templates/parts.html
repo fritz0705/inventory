@@ -369,7 +369,11 @@
 						<td>{{with .Key}}{{.}}{{else}}(none){{end}}</td>
 						<td>{{.Price}}</td>
 						<td>
-							<a class="btn btn-primary btn-sm" href="/parts/distributors/link/{{.Id}}">To distributor</a>
+							<div class="btn-group pull-right">
+								<a class="btn btn-primary btn-sm" href="/parts/distributors/link/{{.Id}}">To distributor</a>
+								<button class="btn btn-sm btn-danger" type="submit"
+									form="actionForm" formaction="/parts/distributors/delete/{{.Id}}">Delete</button>
+							</div>
 						</td>
 					</tr>
 					{{end}}
