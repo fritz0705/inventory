@@ -329,7 +329,7 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	attachments := []Attachment{}
-	err = app.DB.Select(&attachments, `SELECT * FROM 'attachment'
+	err = tx.Select(&attachments, `SELECT * FROM 'attachment'
 	WHERE "part_id" = ? ORDER BY "created_at" ASC`, partView.Id)
 	if err != nil {
 		app.Error(w, err)
@@ -337,7 +337,7 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	distributorPartViews := []DistributorPartView{}
-	err = app.DB.Select(&distributorPartViews, `SELECT * FROM 'distributor_part_view'
+	err = tx.Select(&distributorPartViews, `SELECT * FROM 'distributor_part_view'
 	WHERE "part_id" = ? ORDER BY "name" ASC`, partView.Id)
 	if err != nil {
 		app.Error(w, err)
@@ -345,7 +345,7 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	distributors := []Distributor{}
-	err = app.DB.Select(&distributors, `SELECT * FROM 'distributor' ORDER BY 'name' ASC`)
+	err = tx.Select(&distributors, `SELECT * FROM 'distributor' ORDER BY 'name' ASC`)
 	if err != nil {
 		app.Error(w, err)
 		return
