@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/subtle"
 	"database/sql"
+	"fmt"
 	"io"
 	"mime"
 	"net/url"
@@ -33,6 +34,28 @@ type (
 		IsActive     sql.NullBool `db:"is_active"`
 		CreatedAt    time.Time    `db:"created_at"`
 		UpdatedAt    time.Time    `db:"updated_at"`
+	}
+
+	Distributor struct {
+		Id       int64  `db:"id"`
+		Name     string `db:"name"`
+		URL      string `db:"url"`
+		Homepage string `db:"homepage"`
+	}
+
+	DistributorPart struct {
+		Id            int64   `db:"id"`
+		DistributorId int64   `db:"distributor_id"`
+		PartId        int64   `db:"part_id"`
+		Price         float64 `db:"price"`
+		Key           string  `db:"key"`
+	}
+
+	DistributorPartView struct {
+		DistributorPart
+		Name     string `db:"name"`
+		URL      string `db:"url"`
+		Homepage string `db:"homepage"`
 	}
 
 	Part struct {
@@ -514,5 +537,51 @@ func (l *Place) LoadForm(form url.Values) error {
 		}
 	}
 
+	return nil
+}
+
+func (d *DistributorPartView) PartURL() string {
+	return fmt.Sprintf(d.URL, url.QueryEscape(d.Key))
+}
+
+func (d *DistributorPart) Save(db Execer) error {
+	if d.Id == 0 {
+		// CREATE
+		res, err := db.Exec(`INSERT INTO 'distributor_part' ('distributor_id', 'part_id',
+		'price', 'key') VALUES (?, ?, ?, ?)`, d.DistributorId, d.PartId, d.Price,
+			d.Key)
+		if err != nil {
+			return err
+		}
+
+		d.Id, err = res.LastInsertId()
+		return err
+	}
+
+	_, err := db.Exec(`UPDATE 'distributor_part' SET 'distributor_id' = ?,
+	'part_id' = ?, 'price' = ?, 'key' = ?
+	WHERE "id" = ?`, d.DistributorId, d.PartId, d.Price, d.Key, d.Id)
+	return err
+}
+
+func (d *DistributorPart) LoadForm(form url.Values) error {
+	for key, value := range form {
+		switch key {
+		case "distributor":
+			val, err := strconv.Atoi(value[0])
+			if err != nil {
+				return err
+			}
+			d.DistributorId = int64(val)
+		case "price":
+			val, err := strconv.ParseFloat(value[0], 64)
+			if err != nil {
+				return err
+			}
+			d.Price = val
+		case "key":
+			d.Key = value[0]
+		}
+	}
 	return nil
 }

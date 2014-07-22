@@ -74,6 +74,9 @@ func (app *Application) setUpRoutes() {
 	app.HandleFunc("/parts/upload/new/", app.PartUploadHandler)
 	app.HandleFunc("/parts/upload/delete/", app.PartUploadDeleteHandler)
 
+	app.HandleFunc("/parts/distributors/new/", app.CreateDistributorPart)
+	app.HandleFunc("/parts/distributors/link/", app.DistributorPartRedirect)
+
 	app.HandleFunc("/categories", app.ListCategoriesHandler)
 	app.HandleFunc("/categories/new", app.NewCategoryHandler)
 	app.HandleFunc("/categories/edit/", app.EditCategoryHandler)

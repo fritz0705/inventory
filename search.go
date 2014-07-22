@@ -8,9 +8,9 @@ import (
 )
 
 type searchQuery struct {
-	Unit string
-	Value si.Number
-	Stock si.Number
+	Unit     string
+	Value    si.Number
+	Stock    si.Number
 	Keywords []string
 }
 
@@ -46,13 +46,13 @@ func loadSearchQuery(c chan searchItem) (*searchQuery, error) {
 		var err error
 		switch item.typ {
 		case searchItemUnit:
-			res.Unit = item.val[1:len(item.val)-1]
+			res.Unit = item.val[1 : len(item.val)-1]
 		case searchItemNumber:
 			res.Value, err = si.Parse(item.val)
 		case searchItemText:
 			res.Keywords = append(res.Keywords, item.val)
 		case searchItemStock:
-			res.Stock, err = si.Parse(item.val[1:len(item.val)-1])
+			res.Stock, err = si.Parse(item.val[1 : len(item.val)-1])
 		}
 		if err != nil {
 			return nil, err
@@ -129,17 +129,17 @@ func (s searchItem) String() string {
 }
 
 type searchLexer struct {
-	name string
+	name  string
 	input string
 	start int
-	pos int
+	pos   int
 	width int
 	items chan searchItem
 }
 
 func searchLex(name, input string) (*searchLexer, chan searchItem) {
 	l := &searchLexer{
-		name: name,
+		name:  name,
 		input: input,
 		items: make(chan searchItem),
 	}

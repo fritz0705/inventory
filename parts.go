@@ -24,7 +24,7 @@ func buildPartAmountGraph(amounts []PartAmount) (res [][2]int64) {
 }
 
 type siRange struct {
-	Low si.Number
+	Low  si.Number
 	High si.Number
 }
 
@@ -61,16 +61,16 @@ func (s siRange) String() string {
 
 type partsFilter struct {
 	Categories map[int64]bool
-	Places map[int64]bool
-	Value *siRange
-	Name string
-	Stock *siRange
+	Places     map[int64]bool
+	Value      *siRange
+	Name       string
+	Stock      *siRange
 }
 
 func loadPartsFilter(form url.Values) (filter *partsFilter, err error) {
 	filter = &partsFilter{
 		Categories: make(map[int64]bool),
-		Places: make(map[int64]bool),
+		Places:     make(map[int64]bool),
 	}
 	for key, value := range form {
 		value := value[0]
@@ -155,7 +155,7 @@ func buildListPartsQuery(filter *partsFilter, form url.Values) (query string, ar
 	}
 
 	if filter.Stock != nil {
-		if filter.Stock .IsEmpty() {
+		if filter.Stock.IsEmpty() {
 			query += ` AND "amount" = ?`
 			args = append(args, filter.Stock.Low.Value())
 		} else {
@@ -336,12 +336,29 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	distributorPartViews := []DistributorPartView{}
+	err = app.DB.Select(&distributorPartViews, `SELECT * FROM 'distributor_part_view'
+	WHERE "part_id" = ? ORDER BY "name" ASC`, partView.Id)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	distributors := []Distributor{}
+	err = app.DB.Select(&distributors, `SELECT * FROM 'distributor' ORDER BY 'name' ASC`)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
 	app.renderTemplate(w, r, map[string]interface{}{
-		"Part":        partView,
-		"Categories":  categories,
-		"Places":      places,
-		"AmountGraph": buildPartAmountGraph(partAmounts),
-		"Attachments": attachments,
+		"Part":             partView,
+		"Categories":       categories,
+		"Places":           places,
+		"DistributorParts": distributorPartViews,
+		"Distributors":     distributors,
+		"AmountGraph":      buildPartAmountGraph(partAmounts),
+		"Attachments":      attachments,
 	}, "EditPart", "Layout")
 }
 
