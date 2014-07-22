@@ -73,26 +73,30 @@ func loadPartsFilter(form url.Values) (filter *partsFilter, err error) {
 		Places:     make(map[int64]bool),
 	}
 	for key, value := range form {
-		value := value[0]
-		if value == "" {
+		val := value[0]
+		if val == "" {
 			continue
 		}
 		switch key {
 		case "value":
-			filter.Value, err = parseSiRange(value)
+			filter.Value, err = parseSiRange(val)
 		case "amount":
-			filter.Stock, err = parseSiRange(value)
+			filter.Stock, err = parseSiRange(val)
 		case "name":
-			filter.Name = value
+			filter.Name = val
 		case "category":
-			category, _ := strconv.Atoi(value)
-			if category != 0 {
-				filter.Categories[int64(category)] = true
+			for _, val := range value {
+				category, _ := strconv.Atoi(val)
+				if category != 0 {
+					filter.Categories[int64(category)] = true
+				}
 			}
-		case "places":
-			place, _ := strconv.Atoi(value)
-			if place != 0 {
-				filter.Places[int64(place)] = true
+		case "place":
+			for _, val := range value {
+				place, _ := strconv.Atoi(val)
+				if place != 0 {
+					filter.Places[int64(place)] = true
+				}
 			}
 		}
 		if err != nil {
@@ -230,6 +234,13 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	places := []Place{}
+	err = tx.Select(&places, `SELECT * FROM 'place'`)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
 	currentPage, _ := strconv.Atoi(r.FormValue("page"))
 	prevQuery, nextQuery := pageQuerys(r.URL, currentPage)
 
@@ -238,6 +249,7 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 	app.renderTemplate(w, r, map[string]interface{}{
 		"Parts":       partViews,
 		"Categories":  categories,
+		"Places": places,
 		"CurrentPage": currentPage,
 		"NextPage":    template.URL(nextQuery),
 		"PrevPage":    template.URL(prevQuery),

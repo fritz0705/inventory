@@ -87,6 +87,18 @@
 						</select>
 					</div>
 					<div class="form-group">
+						<label for="filterPlace">Place</label>
+						<select class="form-control" id="filterPlace" multiple name="place">
+							{{with .Data.Places}}
+							{{range .}}
+							<option value="{{.Id}}" {{if index $.Data.Filter.Places .Id}}selected{{end}}>
+								{{.Name}}
+							</option>
+							{{end}}
+							{{end}}
+						</select>
+					</div>
+					<div class="form-group">
 						<label for="filterValue">Value</label>
 						<input type="text" name="value" class="form-control" id="filterValue" placeholder="Value e.g. 1, 5k, 1k-20k"
 							value="{{with .Data.Filter.Value}}{{.}}{{end}}"/>
