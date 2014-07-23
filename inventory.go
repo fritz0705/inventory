@@ -78,6 +78,8 @@ func (app *Application) setUpRoutes() {
 	app.HandleFunc("/parts/distributors/link/", app.DistributorPartRedirect)
 	app.HandleFunc("/parts/distributors/delete/", app.DeleteDistributorPart)
 
+	app.HandleFunc("/parts/merge/", app.NewPartMergeHandler)
+
 	app.HandleFunc("/categories", app.ListCategoriesHandler)
 	app.HandleFunc("/categories/new", app.NewCategoryHandler)
 	app.HandleFunc("/categories/edit/", app.EditCategoryHandler)

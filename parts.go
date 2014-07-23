@@ -586,3 +586,158 @@ func (app *Application) DeletePartHandler(w http.ResponseWriter, r *http.Request
 
 	http.Redirect(w, r, "/parts", http.StatusSeeOther)
 }
+
+func (app *Application) CreatePartMergeHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	id, _ := strconv.Atoi(path.Base(r.URL.Path))
+
+	tx := app.DB.MustBegin()
+	defer tx.Rollback()
+
+	part := new(PartView)
+	err = tx.Get(part, `SELECT * FROM 'part_view' WHERE "id" = ?`, id)
+	if app.SQLError(w, r, err) {
+		return
+	}
+
+	newPart := &Part{
+		Name: r.PostForm.Get("name"),
+		Description: sql.NullString{
+			String: r.PostForm.Get("description"),
+			Valid:  true,
+		},
+		Value:      part.Value,
+		CategoryId: part.CategoryId,
+		ImageId:    part.ImageId,
+		CreatedAt:  time.Now(),
+	}
+
+	if r.PostForm.Get("place") != "" {
+		placeId, _ := strconv.ParseInt(r.PostForm.Get("place"), 10, 64)
+		newPart.PlaceId = sql.NullInt64{
+			Int64: placeId,
+			Valid: true,
+		}
+	}
+
+	err = newPart.Save(tx)
+	if app.SQLError(w, r, err) {
+		return
+	}
+
+	if r.PostForm["parts"] == nil || len(r.PostForm["parts"]) < 2{
+		http.Redirect(w, r, fmt.Sprintf("/parts/edit/%d", part.Id), http.StatusSeeOther)
+		return
+	}
+	oldParts := make([]PartView, len(r.PostForm["parts"]))
+	for i, id := range r.PostForm["parts"] {
+		err = tx.Get(&oldParts[i], `SELECT * FROM 'part_view' WHERE "id" = ?`, id)
+		if app.SQLError(w, r, err) {
+			return
+		}
+		attachments := []Attachment{}
+		err = tx.Select(&attachments, `SELECT * FROM 'attachment' WHERE "part_id" = ?`, id)
+		if app.SQLError(w, r, err) {
+			return
+		}
+
+		for _, attachment := range attachments {
+			if !newPart.ImageId.Valid && attachment.MediaType() == "image" {
+				newPart.ImageId.Int64 = attachment.Id
+			}
+			attachment.PartId = newPart.Id
+			err = attachment.Save(tx)
+			if app.SQLError(w, r, err) {
+				return
+			}
+		}
+		distributorParts := []DistributorPart{}
+		err = tx.Select(&distributorParts, `SELECT * FROM 'distributor_part' WHERE
+		"part_id" = ?`, id)
+		if app.SQLError(w, r, err) {
+			return
+		}
+
+		for _, distributor := range distributorParts {
+			distributor.PartId = newPart.Id
+			err = distributor.Save(tx)
+			if app.SQLError(w, r, err) {
+				return
+			}
+		}
+	}
+
+	err = newPart.Save(tx)
+	if app.SQLError(w, r, err) {
+		return
+	}
+
+	newAmount := &PartAmount{
+		PartId:    newPart.Id,
+		Timestamp: time.Now(),
+	}
+	for _, part := range oldParts {
+		newAmount.Amount += part.Amount
+	}
+
+	err = newAmount.Save(tx)
+	if app.SQLError(w, r, err) {
+		return
+	}
+
+	for _, part := range oldParts {
+		_, err = tx.Exec(`DELETE FROM 'part' WHERE "id" = ?`, part.Id)
+		if app.SQLError(w, r, err) {
+			return
+		}
+	}
+
+	tx.Commit()
+
+	http.Redirect(w, r, fmt.Sprintf("/parts/edit/%d", newPart.Id), http.StatusFound)
+}
+
+func (app *Application) NewPartMergeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		app.CreatePartMergeHandler(w, r)
+		return
+	}
+
+	id := path.Base(r.URL.Path)
+
+	tx := app.DB.MustBegin()
+	defer tx.Rollback()
+
+	part := new(PartView)
+	err := tx.Get(part, `SELECT * FROM 'part_view' WHERE "id" = ?`, id)
+	if app.SQLError(w, r, err) {
+		return
+	}
+
+	similarParts := []PartView{}
+	err = tx.Select(&similarParts, `SELECT * FROM 'part_view' WHERE "id" != ?
+	AND "name" = ? AND "value" = ? AND "category_id" = ?`, part.Id, part.Name,
+		part.Value, part.CategoryId)
+	if app.SQLError(w, r, err) {
+		return
+	}
+
+	places := []Place{}
+	err = tx.Select(&places, `SELECT * FROM 'place' ORDER BY "name" ASC`)
+	if app.SQLError(w, r, err) {
+		return
+	}
+
+	tx.Commit()
+
+	app.renderTemplate(w, r, map[string]interface{}{
+		"Part":   part,
+		"Parts":  similarParts,
+		"Places": places,
+	}, "PartMerge", "Layout")
+}
