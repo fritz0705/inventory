@@ -228,14 +228,14 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	categories := []Category{}
-	err = tx.Select(&categories, `SELECT * FROM 'category'`)
+	err = tx.Select(&categories, `SELECT * FROM 'category' ORDER BY "name" ASC`)
 	if err != nil {
 		app.Error(w, err)
 		return
 	}
 
 	places := []Place{}
-	err = tx.Select(&places, `SELECT * FROM 'place'`)
+	err = tx.Select(&places, `SELECT * FROM 'place' ORDER BY "name" ASC`)
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -260,14 +260,14 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 
 func (app *Application) NewPartHandler(w http.ResponseWriter, r *http.Request) {
 	categories := []Category{}
-	err := app.DB.Select(&categories, `SELECT * FROM 'category'`)
+	err := app.DB.Select(&categories, `SELECT * FROM 'category' ORDER BY "name" ASC`)
 	if err != nil {
 		app.Error(w, err)
 		return
 	}
 
 	places := []Place{}
-	err = app.DB.Select(&places, `SELECT * FROM 'place'`)
+	err = app.DB.Select(&places, `SELECT * FROM 'place' ORDER BY "name" ASC`)
 	if err != nil {
 		app.Error(w, err)
 		return
@@ -311,14 +311,14 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	places := []Place{}
-	err = tx.Select(&places, `SELECT * FROM 'place'`)
+	err = tx.Select(&places, `SELECT * FROM 'place' ORDER BY "name" ASC`)
 	if err != nil {
 		app.Error(w, err)
 		return
 	}
 
 	categories := []Category{}
-	err = tx.Select(&categories, `SELECT * FROM 'category'`)
+	err = tx.Select(&categories, `SELECT * FROM 'category' ORDER BY "name" ASC`)
 	if err != nil {
 		app.Error(w, err)
 		return
