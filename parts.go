@@ -249,7 +249,7 @@ func (app *Application) ListPartsHandler(w http.ResponseWriter, r *http.Request)
 	app.renderTemplate(w, r, map[string]interface{}{
 		"Parts":       partViews,
 		"Categories":  categories,
-		"Places": places,
+		"Places":      places,
 		"CurrentPage": currentPage,
 		"NextPage":    template.URL(nextQuery),
 		"PrevPage":    template.URL(prevQuery),
