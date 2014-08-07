@@ -54,6 +54,8 @@ func loadSearchQuery(c chan searchItem) (*searchQuery, error) {
 			res.Keywords = append(res.Keywords, item.val)
 		case searchItemStock:
 			res.Stock, err = si.Parse(item.val[1 : len(item.val)-1])
+		case searchItemString:
+			res.Keywords = append(res.Keywords, item.val)
 		}
 		if err != nil {
 			return nil, err
@@ -90,6 +92,7 @@ func (app *Application) SearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	app.renderTemplate(w, r, map[string]interface{}{
 		"Parts": res,
+		"Query": sq,
 	}, "Search", "Layout")
 }
 
@@ -103,6 +106,7 @@ const (
 	searchItemText
 	searchItemUnit
 	searchItemStock
+	searchItemString
 )
 
 type searchStateFunc func(*searchLexer) searchStateFunc
@@ -174,8 +178,33 @@ func searchLexAny(l *searchLexer) searchStateFunc {
 		return searchLexUnit
 	} else if l.input[l.pos] == '<' {
 		return searchLexStock
+	} else if l.input[l.pos] == '"' {
+		return searchLexString
 	}
 	return searchLexNumberOrText
+}
+
+func searchLexString(l *searchLexer) searchStateFunc {
+	escape := false
+	for {
+		if l.pos >= len(l.input) {
+			l.emit(searchItemEOF)
+			return nil
+		}
+		if escape == false {
+			if l.input[l.pos] == '"' {
+				break
+			} else if l.input[l.pos] == '\\' {
+				escape = true
+			}
+		} else {
+			escape = false
+		}
+		l.pos++
+	}
+	l.pos++
+	l.emit(searchItemString)
+	return searchLexAny
 }
 
 func searchLexStock(l *searchLexer) searchStateFunc {
