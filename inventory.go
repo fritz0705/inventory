@@ -2,6 +2,7 @@ package inventory
 
 import (
 	"html/template"
+	"io"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -57,6 +58,8 @@ func (app *Application) setUpRoutes() {
 	app.HandleFunc("/index", app.IndexHandler)
 	app.HandleFunc("/dashboard", app.DashboardHandler)
 
+	app.HandleFunc("/robots.txt", app.RobotsHandler)
+
 	app.HandleFunc("/login", app.requiresSessions(http.HandlerFunc(app.LoginHandler)))
 	app.HandleFunc("/logout", app.requiresSessions(http.HandlerFunc(app.LogoutHandler)))
 	app.HandleFunc("/register", app.requiresSessions(http.HandlerFunc(app.RegisterHandler)))
@@ -73,12 +76,11 @@ func (app *Application) setUpRoutes() {
 	app.HandleFunc("/parts/delete/", app.DeletePartHandler)
 	app.HandleFunc("/parts/upload/new/", app.PartUploadHandler)
 	app.HandleFunc("/parts/upload/delete/", app.PartUploadDeleteHandler)
+	app.HandleFunc("/parts/merge/", app.NewPartMergeHandler)
 
 	app.HandleFunc("/parts/distributors/new/", app.CreateDistributorPart)
 	app.HandleFunc("/parts/distributors/link/", app.DistributorPartRedirect)
 	app.HandleFunc("/parts/distributors/delete/", app.DeleteDistributorPart)
-
-	app.HandleFunc("/parts/merge/", app.NewPartMergeHandler)
 
 	app.HandleFunc("/categories", app.ListCategoriesHandler)
 	app.HandleFunc("/categories/new", app.NewCategoryHandler)
@@ -95,6 +97,10 @@ func (app *Application) setUpRoutes() {
 	app.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(app.AssetsPath))))
 
 	app.HandleFunc("/", app.RootHandler)
+}
+
+func (h *Application) RobotsHandler(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, "User-Agent: *\r\nDisallow: /\r\n")
 }
 
 func (h *Application) requiresUser(f http.Handler) http.HandlerFunc {
