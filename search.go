@@ -34,8 +34,8 @@ func (s searchQuery) SQL() (query string, args []interface{}) {
 	}
 
 	for _, kw := range s.Keywords {
-		query += ` AND "name" LIKE ?`
-		args = append(args, kw)
+		query += ` AND "name" LIKE ? OR "name" GLOB ?`
+		args = append(args, kw, kw)
 	}
 
 	return
@@ -55,7 +55,7 @@ func loadSearchQuery(c chan searchItem) (*searchQuery, error) {
 		case searchItemStock:
 			res.Stock, err = si.Parse(item.val[1 : len(item.val)-1])
 		case searchItemString:
-			res.Keywords = append(res.Keywords, item.val)
+			res.Keywords = append(res.Keywords, item.val[1:len(item.val)-1])
 		}
 		if err != nil {
 			return nil, err
@@ -185,7 +185,7 @@ func searchLexAny(l *searchLexer) searchStateFunc {
 }
 
 func searchLexString(l *searchLexer) searchStateFunc {
-	escape := false
+	escape := true
 	for {
 		if l.pos >= len(l.input) {
 			l.emit(searchItemEOF)
