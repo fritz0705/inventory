@@ -400,6 +400,34 @@ func (app *Application) CreatePartAmountHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	lastPartAmount := new(PartAmount)
+	err = tx.Get(lastPartAmount, `SELECT * FROM 'part_amount' WHERE "part_id" = ?
+		ORDER BY "timestamp" DESC LIMIT 1`, part.Id)
+	switch err {
+	case sql.ErrNoRows:
+		lastPartAmount = nil
+	case nil:
+	default:
+		app.Error(w, err)
+		return
+	}
+
+	if lastPartAmount != nil && time.Since(lastPartAmount.Timestamp) < 600 * time.Second {
+		lastPartAmount.Amount = int64(amount)
+		lastPartAmount.Timestamp = time.Now()
+
+		err = lastPartAmount.Save(tx)
+		if err != nil {
+			app.Error(w, err)
+			return
+		}
+
+		tx.Commit()
+
+		http.Redirect(w, r, fmt.Sprintf("/parts/edit/%d", part.Id), http.StatusSeeOther)
+		return
+	}
+
 	partAmount := &PartAmount{
 		PartId:    part.Id,
 		Amount:    int64(amount),

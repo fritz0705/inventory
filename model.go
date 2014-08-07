@@ -464,7 +464,7 @@ func (p *PartAmount) Save(db Execer) error {
 
 	// UPDATE
 	_, err := db.Exec(`UPDATE 'part_amount' SET 'part_id' = ?, 'amount' = ?,
-	'timestamp' = ? WHERE 'id' = ?`, p.PartId, p.Amount, p.Timestamp, p.Id)
+	'timestamp' = ? WHERE "id" = ?`, p.PartId, p.Amount, p.Timestamp, p.Id)
 
 	return err
 }
