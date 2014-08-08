@@ -91,8 +91,10 @@ func (app *Application) CreateDistributorPart(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if api := APIs[distributor.Api]; api != nil {
-		distributorPart.Key = api(distributorPart.Key)
+	if distributor.Api.Valid {
+		if api := APIs[distributor.Api.String]; api != nil {
+			distributorPart.Key = api(distributorPart.Key)
+		}
 	}
 
 	err = distributorPart.Save(tx)

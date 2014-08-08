@@ -41,7 +41,7 @@ type (
 		Name     string `db:"name"`
 		URL      string `db:"url"`
 		Homepage string `db:"homepage"`
-		Api      string `db:"api"`
+		Api      sql.NullString `db:"api"`
 	}
 
 	DistributorPart struct {
