@@ -60,6 +60,17 @@
 		</div>
 	</div>
 	<div class="form-group">
+		<label for="categoryParent" class="col-sm-2 control-label">Parent category</label>
+		<div class="col-sm-10">
+			<select class="form-control" id="categoryParent" name="parent">
+				<option value="">(none)</option>
+				{{range .Data.Categories}}
+				<option value="{{.Id}}">{{.Name}}</option>
+				{{end}}
+			</select>
+		</div>
+	</div>
+	<div class="form-group">
 		<div class="col-sm-offset-2 col-sm-10">
 			<button type="submit" class="btn btn-primary">Create category</button>
 		</div>
@@ -75,23 +86,34 @@
 	<li class="active">Edit {{.Id}}</li>
 </ol>
 
-<form role="form" class="form-horizontal" method="POST" action="/categories/edit/{{.Id}}">
+<form role="form" class="form-horizontal" method="POST" action="/categories/edit/{{.Category.Id}}">
 	<div class="form-group">
 		<label for="categoryName" class="col-sm-2 control-label">Name</label>
 		<div class="col-sm-10">
-			<input required type="text" class="form-control" id="categoryName" name="name" placeholder="Category name" value="{{.Name}}" />
+			<input required type="text" class="form-control" id="categoryName" name="name" placeholder="Category name" value="{{.Category.Name}}" />
 		</div>
 	</div>
 	<div class="form-group">
 		<label for="categoryUnit" class="col-sm-2 control-label">Unit</label>
 		<div class="col-sm-10">
-			<input type="text" class="form-control" id="categoryUnit" name="unit" placeholder="Category unit, e.g. Ohm" value="{{.Unit.Value}}" />
+			<input type="text" class="form-control" id="categoryUnit" name="unit" placeholder="Category unit, e.g. Ohm" value="{{.Category.Unit.Value}}" />
 		</div>
 	</div>
 	<div class="form-group">
 		<label for="categoryUnitSymbol" class="col-sm-2 control-label">Unit symbol</label>
 		<div class="col-sm-10">
-			<input type="text" class="form-control" id="categoryUnitSymbol" name="unit_symbol" placeholder="Unit symbol, e.g. Ω" value="{{.UnitSymbol.Value}}" />
+			<input type="text" class="form-control" id="categoryUnitSymbol" name="unit_symbol" placeholder="Unit symbol, e.g. Ω" value="{{.Category.UnitSymbol.Value}}" />
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="categoryParent" class="col-sm-2 control-label">Parent category</label>
+		<div class="col-sm-10">
+			<select class="form-control" id="categoryParent" name="parent">
+				<option value="">(none)</option>
+				{{range .Categories}}
+				<option value="{{.Id}}" {{if eq .Id $.Data.Category.ParentId.Int64}}selected{{end}}>{{.Name}}</option>
+				{{end}}
+			</select>
 		</div>
 	</div>
 	<div class="form-group">

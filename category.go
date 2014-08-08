@@ -23,7 +23,16 @@ func (app *Application) ListCategoriesHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (app *Application) NewCategoryHandler(w http.ResponseWriter, r *http.Request) {
-	app.renderTemplate(w, r, nil, "NewCategory", "Layout")
+	var categories []Category
+	err := app.DB.Select(&categories, `SELECT * FROM 'category' ORDER BY "name"`)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	app.renderTemplate(w, r, map[string]interface{}{
+		"Categories": categories,
+	}, "NewCategory", "Layout")
 }
 
 func (app *Application) CreateCategoryHandler(w http.ResponseWriter, r *http.Request) {
@@ -67,7 +76,17 @@ func (app *Application) EditCategoryHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	app.renderTemplate(w, r, category, "EditCategory", "Layout")
+	categories := []Category{}
+	err = app.DB.Select(&categories, `SELECT * FROM 'category' ORDER BY "name"`)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
+	app.renderTemplate(w, r, map[string]interface{}{
+		"Category": category,
+		"Categories": categories,
+	}, "EditCategory", "Layout")
 }
 
 func (app *Application) UpdateCategoryHandler(w http.ResponseWriter, r *http.Request) {
