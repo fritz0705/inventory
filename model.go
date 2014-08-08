@@ -85,6 +85,7 @@ type (
 		Name       string         `db:"name"`
 		Unit       sql.NullString `db:"unit"`
 		UnitSymbol sql.NullString `db:"unit_symbol"`
+		ParentId   sql.NullInt64  `db:"parent_id"`
 	}
 
 	PartAmount struct {
@@ -389,8 +390,9 @@ func (p *Part) Place(db Queryer) (*Place, error) {
 
 func (c *Category) Save(db Execer) error {
 	if c.Id == 0 {
-		res, err := db.Exec(`INSERT INTO 'category' ('name', 'unit', 'unit_symbol') VALUES (?, ?, ?)`,
-			c.Name, c.Unit, c.UnitSymbol)
+		res, err := db.Exec(`INSERT INTO 'category' ('name', 'unit', 'unit_symbol',
+	'parent_id') VALUES (?, ?, ?, ?)`,
+			c.Name, c.Unit, c.UnitSymbol, c.ParentId)
 		if err != nil {
 			return err
 		}
@@ -399,8 +401,9 @@ func (c *Category) Save(db Execer) error {
 	}
 
 	// UPDATE
-	_, err := db.Exec(`UPDATE 'category' SET 'name' = ?, 'unit' = ?, 'unit_symbol' = ? WHERE "id" = ?`,
-		c.Name, c.Unit, c.UnitSymbol, c.Id)
+	_, err := db.Exec(`UPDATE 'category' SET 'name' = ?, 'unit' = ?,
+	'unit_symbol' = ?, 'parent_id' = ? WHERE "id" = ?`,
+		c.Name, c.Unit, c.UnitSymbol, c.ParentId, c.Id)
 
 	return err
 }
@@ -421,6 +424,8 @@ func (c *Category) Load(rows *sql.Rows) error {
 			dest[n] = &c.Unit
 		case "unit_symbol":
 			dest[n] = &c.UnitSymbol
+		case "parent_id":
+			dest[n] = &c.ParentId
 		}
 	}
 
@@ -445,6 +450,9 @@ func (c *Category) LoadForm(form url.Values) error {
 				String: value[0],
 				Valid:  true,
 			}
+		case "parent":
+			val, _ := strconv.Atoi(value[0])
+			c.ParentId = sql.NullInt64{int64(val), val != 0}
 		}
 	}
 
