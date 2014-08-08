@@ -16,13 +16,6 @@ import (
 
 var PartsPerPage = 10
 
-func buildPartAmountGraph(amounts []PartAmount) (res [][2]int64) {
-	for _, amount := range amounts {
-		res = append(res, [2]int64{amount.Timestamp.Unix() * 1000, amount.Amount})
-	}
-	return res
-}
-
 type siRange struct {
 	Low  si.Number
 	High si.Number
@@ -324,14 +317,6 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	partAmounts := []PartAmount{}
-	err = tx.Select(&partAmounts, `SELECT * FROM 'part_amount'
-	WHERE "part_id" = ? ORDER BY "timestamp" DESC LIMIT 30`, partView.Id)
-	if err != nil {
-		app.Error(w, err)
-		return
-	}
-
 	attachments := []Attachment{}
 	err = tx.Select(&attachments, `SELECT * FROM 'attachment'
 	WHERE "part_id" = ? ORDER BY "created_at" ASC`, partView.Id)
@@ -355,13 +340,21 @@ func (app *Application) EditPartHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	partAmounts := []PartAmount{}
+	err = tx.Select(&partAmounts, `SELECT * FROM 'part_amount' WHERE "part_id" = ?
+	ORDER BY "timestamp" DESC LIMIT 10`, partView.Id)
+	if err != nil {
+		app.Error(w, err)
+		return
+	}
+
 	app.renderTemplate(w, r, map[string]interface{}{
 		"Part":             partView,
 		"Categories":       categories,
 		"Places":           places,
 		"DistributorParts": distributorPartViews,
 		"Distributors":     distributors,
-		"AmountGraph":      buildPartAmountGraph(partAmounts),
+		"Amounts":          partAmounts,
 		"Attachments":      attachments,
 	}, "EditPart", "Layout")
 }

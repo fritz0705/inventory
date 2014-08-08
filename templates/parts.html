@@ -413,20 +413,23 @@
 						</form>
 					</dd>
 				</dl>
-				<div id="amountChart" style="height: 360px"></div>
-				<script type="application/javascript">
-(function(){
- var data = [ {{.AmountGraph}} ];
- var options = {
-	xaxis: {
-		mode: "time",
-		timeformat: "%d.%m.%Y"
-	}
- };
- $.plot($("#amountChart"), data, options);
-})();
-				</script>
 			</div>
+			<table class="table table-hover table-striped">
+				<thead>
+					<tr>
+						<th>Timestamp</th>
+						<th>Stock</th>
+					</tr>
+				</thead>
+				<tbody>
+					{{range .Amounts}}
+					<tr>
+						<td>{{.Timestamp}}</td>
+						<td>{{.Amount}}</td>
+					</tr>
+					{{end}}
+				</tbody>
+			</table>
 		</div>
 	</div>
 </div>
