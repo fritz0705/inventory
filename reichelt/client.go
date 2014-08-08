@@ -35,6 +35,14 @@ func SearchID(name string) (int64, error) {
 	return DefaultClient.SearchID(name)
 }
 
+func ResolveID(id string) string {
+	res, err := SearchID(id)
+	if err != nil {
+		return id
+	}
+	return strconv.Itoa(int(res))
+}
+
 func (c *Client) Search(term string) ([]Record, error) {
 	req, err := http.NewRequest("GET", c.Endpoint, nil)
 	if err != nil {

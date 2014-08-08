@@ -5,7 +5,13 @@ import (
 	"net/http"
 	"path"
 	"strconv"
+
+	"github.com/fritz0705/inventory/reichelt"
 )
+
+var APIs = map[string]func(string)string{
+	"reichelt": reichelt.ResolveID,
+}
 
 func (app *Application) DistributorPartRedirect(w http.ResponseWriter, r *http.Request) {
 	tx := app.DB.MustBegin()
@@ -61,6 +67,14 @@ func (app *Application) CreateDistributorPart(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	distributorId, _ := strconv.Atoi(r.PostForm.Get("distributor"))
+
+	distributor := new(Distributor)
+	err = tx.Get(distributor, `SELECT * FROM 'distributor' WHERE "id" = ?`, distributorId)
+	if app.SQLError(w, r, err) {
+		return
+	}
+
 	part := new(Part)
 	err = tx.Get(part, `SELECT * FROM 'part' WHERE "id" = ?`, id)
 	if app.SQLError(w, r, err) {
@@ -75,6 +89,10 @@ func (app *Application) CreateDistributorPart(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		app.Error(w, err)
 		return
+	}
+
+	if api := APIs[distributor.Api]; api != nil {
+		distributorPart.Key = api(distributorPart.Key)
 	}
 
 	err = distributorPart.Save(tx)
